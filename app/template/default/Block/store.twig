@@ -1,0 +1,19 @@
+{% set storeList = getTopStores() %}
+<div class="store-wrap">
+    <div class="wrap">
+        <div class="title-cont">
+            <h3 class="title" title="店舗">店舗</h3>
+{#            <a class="view-all" href="#">もっと見る ▶</a>#}
+        </div>
+        <div class="slider slider-store">
+            {% for storeIndex,storeItem in storeList %}
+            <a href="{{ url("product_list", {store_id: storeItem.id}) }}" class="logo-items">
+                <img src="{{ asset(storeItem.image|no_image_store, 'save_image') }}"
+                     title="{{ storeItem.name }}" alt="{{ storeItem.name }}" />
+{#                <img src="{{ asset("assets/img/data/product-type-1.jpg") }}"#}
+{#                     title="{{ storeItem.name }}" alt="{{ storeItem.name }}" />#}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="{{ eccube_config.locale }}">
+
+<head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# product: http://ogp.me/ns/product#">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta http-equiv="content-language" content="vi"/>
+    <meta http-equiv="audience" content="General"/>
+    <meta name="referrer" content="always"/>
+    <meta name="revisit-after" content="1 days"/>
+    <meta name="distribution" content="Global"/>
+    <meta http-equiv="REFRESH" content="3600"/>
+
+    <title>{{ BaseInfo.shop_name }}{% if subtitle is defined and subtitle is not empty %} / {{ subtitle }}{% elseif title is defined and title is not empty %} / {{ title }}{% endif %}</title>
+    <meta name="eccube-csrf-token" content="{{ csrf_token(constant('Eccube\\Common\\Constant::TOKEN_NAME')) }}">
+    {% if Page.author is not empty %}
+        <meta name="author" content="{{ Page.author }}">
+    {% endif %}
+    {% if Page.description is not empty %}
+        <meta name="description" content="{{ Page.description }}">
+    {% endif %}
+    {% if Page.keyword is not empty %}
+        <meta name="keywords" content="{{ Page.keyword }}">
+    {% endif %}
+    {% if Page.meta_robots is not empty %}
+{#        <meta name="robots" content="{{ Page.meta_robots }}">#}
+        <meta name="robots" content="noindex">
+    {% endif %}
+    {% if Page.meta_tags is not empty %}
+        {{ include(template_from_string(Page.meta_tags)) }}
+    {% endif %}
+
+    <link href="{{ asset('assets/css/bootstrap.css') }}" type="text/css" rel="stylesheet" media="all">
+    <link href="{{ asset('assets/css/bootstrap-select.min.css') }}" type="text/css" rel="stylesheet" media="all">
+    <link href="{{ asset('assets/css/fontawesome.css') }}" type="text/css" rel="stylesheet" media="all">
+    <link href="{{ asset("assets/css/slick.css") }}" type="text/css" rel="stylesheet" media="all">
+    <link href="{{ asset('assets/css/common.css') }}" type="text/css" rel="stylesheet" media="all">
+    <link href="{{ asset("assets/css/styles.css") }}" type="text/css" rel="stylesheet" media="all">
+    <link href="{{ asset('assets/css/style.css') }}" type="text/css" rel="stylesheet" media="all">
+    <link href="{{ asset('assets/css/develop.css?v=1.2') }}" type="text/css" rel="stylesheet" media="all">
+    <link href="{{ asset('assets/css/calendar-ct.css') }}" type="text/css" rel="stylesheet" media="all">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap"
+          rel="stylesheet">
+    {% block stylesheet %}{% endblock %}
+</head>
+
+<body>
+<div id="wrapper">
+    {% if Layout.Header %}
+        {{ include('block.twig', {'Blocks': Layout.Header}) }}
+    {% endif %}
+
+    <div id="contents" class="home-page">
+        {% if Layout.ContentsTop %}
+            {{ include('block.twig', {'Blocks': Layout.ContentsTop}) }}
+        {% endif %}
+        {% block main %}{% endblock %}
+    </div>
+
+    {% if Layout.Footer %}
+        <div id="footer">
+            {{ include('block.twig', {'Blocks': Layout.Footer}) }}
+        </div>
+    {% endif %}
+</div>
+
+<script type="text/javascript" src="{{ asset("assets/js/jquery-1.9.1.min.js") }}"></script>
+<script type="text/javascript" src="{{ asset("assets/js/slick.js") }}"></script>
+<script type="text/javascript" src="{{ asset("assets/js/popper.min.js") }}"></script>
+<script type="text/javascript" src="{{ asset("assets/js/bootstrap.js") }}"></script>
+<script type="text/javascript" src="{{ asset("assets/js/bootstrap-select.js") }}"></script>
+<script type="text/javascript" src="{{ asset("assets/js/common.js") }}"></script>
+<script type="text/javascript" src="{{ asset("assets/js/moment-ct.js") }}"></script>
+<script type="text/javascript" src="{{ asset("assets/js/calendar-ct.js") }}"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+<script src="{{ asset('assets/js/function.js') }}"></script>
+<script src="{{ asset('assets/js/eccube.js') }}"></script>
+<script>
+    $(function () {
+        $.ajaxSetup({
+            'headers': {
+                'ECCUBE-CSRF-TOKEN': $('meta[name="eccube-csrf-token"]').attr('content')
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
+    $(function () {
+        $(".slider-banner").slick({
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            autoplay: true,
+            autoplaySpeed: 4000,
+            speed: 1500,
+            arrows: false,
+            fade: true,
+            dots: true
+        });
+        $('select.selectpicker').selectpicker();
+        $(".slider-store").slick({
+            slidesToShow: 7,
+            slidesToScroll: 7,
+            autoplay: true,
+            arrows: false,
+            dots: true,
+            responsive: [
+                {
+                    breakpoint: 1024,
+                    settings: {
+                        slidesToShow: 5,
+                        slidesToScroll: 5,
+                        infinite: true,
+                        dots: true
+                    }
+                },
+                {
+                    breakpoint: 767,
+                    settings: {
+                        slidesToShow: 3,
+                        slidesToScroll: 3
+                    }
+                },
+                {
+                    breakpoint: 480,
+                    settings: {
+                        slidesToShow: 2,
+                        slidesToScroll: 2
+                    }
+                }
+                // You can unslick at a given breakpoint now by adding:
+                // settings: "unslick"
+                // instead of a settings object
+            ]
+        });
+    });
+</script>
+{% block javascript %}{% endblock %}
+{# Layout: CLOSE_BODY_BEFORE #}
+{% if Layout.CloseBodyBefore %}
+    {{ include('block.twig', {'Blocks': Layout.CloseBodyBefore}) }}
+{% endif %}
+{# プラグイン用Snippet #}
+{% if plugin_snippets is defined %}
+    {{ include('snippet.twig', { snippets: plugin_snippets }) }}
+{% endif %}
+<script src="{{ asset('assets/js/customize.js', 'user_data') }}"></script>
+</body>
+
+</html>

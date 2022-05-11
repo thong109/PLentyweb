@@ -1,0 +1,53 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+<div class="wrap">
+    <div class="row footer__info">
+        <div class="col-12 col-md-6">
+            <p class="f-title">参加者</p>
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <ul class="menu__list">
+{#                        <li><a href="{{ url('product_list', {sale_type_id: 50, order_by: "highlight"}) }}">・セミナー一覧</a></li>#}
+                        <li><a href="{{ url('seminar_list') }}">・セミナー一覧</a></li>
+                        <li><a href="{{ url('product_list', {sale_type_id: 20, order_by: "highlight"}) }}">・レンタル一覧</a></li>
+                        <li><a href="{{ url('shop_list') }}">・店舗一覧</a></li>
+                    </ul>
+                </div>
+                <div class="col-12 col-md-6">
+                    <ul class="menu__list">
+                        <li><a href="/help/tradelaw"><strong>特定商取引の表示</strong></a></li>
+                        {#<li><a href="#">・レンタル一覧</a></li>#}
+                        {#<li><a href="#">・店舗一覧</a></li>#}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-3">
+            {#<p class="f-title">店舗</p>#}
+            {#<ul class="menu__list">#}
+            {#    <li><a href="#">・ダッシュボードTOP</a></li>#}
+            {#    <li><a href="#">・セミナー登録</a></li>#}
+            {#    <li><a href="#">・入金一覧</a></li>#}
+            {#    <li><a href="#">・送金リクエスト</a></li>#}
+            {#</ul>#}
+        </div>
+        <div class="col-12 col-md-3">
+            {#<p class="f-title">その他</p>#}
+            {#<ul class="menu__list">#}
+            {#    <li><a href="#">・ダッシュボードTOP</a></li>#}
+            {#    <li><a href="#">・セミナー登録</a></li>#}
+            {#    <li><a href="#">・入金一覧</a></li>#}
+            {#    <li><a href="#">・送金リクエスト</a></li>#}
+            {#</ul>#}
+        </div>
+    </div>
+    <address class="copyright">© Copyright 2020 LUNASOL Co.,Ltd. All rights reserved</address>
+</div>

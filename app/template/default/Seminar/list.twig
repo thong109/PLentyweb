@@ -1,0 +1,175 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'seminar_page' %}
+
+{% block stylesheet %}
+
+{% endblock %}
+
+{% block main %}
+    <div class="ec-cartRole">
+        <div class="ec-cartRole__confirm ec__wrap-seminar mt-5 row">
+            <div class="col-md col-lg-4">
+                <form id='search_form' method="get" action="{{ url('seminar_list') }}">
+                    <div class="form-group">
+                        {{ form_widget(searchForm.id) }}
+                        {{ form_errors(searchForm.id) }}
+                    </div>
+                    <div class="form-group">
+                        {{ form_widget(searchForm.category_id) }}
+                        {{ form_errors(searchForm.category_id) }}
+                    </div>
+
+                    <div id="calendar"></div>
+                    <input type="hidden" id="search_date" name="start_time">
+                    <button type="submit" class="btn ec__btn-serminar-form ec__seminar-search btn-ec-conversion">
+                        <i class="fa fa-search" aria-hidden="true"></i>検索する
+                    </button>
+                    <input type="button" class="btn ec__btn-serminar-form clear-button" value="クリア">
+
+                </form>
+            </div>
+            <div class="col-md col-lg-8">
+                <div class="ec__confirm-right ec__wrap-seminar-image ">
+                    <div class="d-flex justify-content-between">
+                        <div class="result">
+                            {% if pagination.totalItemCount > 0 %}
+                                件数結果：{{ pagination.totalItemCount }}件
+                            {% else %}
+                                <span>{{ 'front.product.search__product_not_found'|trans }}</span>
+                            {% endif %}
+                        </div>
+                        {# <div class="form-group d-flex align-items-center"> #}
+                        {# <div class="ec__icon-up-down d-flex flex-column mr-2"> #}
+                        {# <i class="fa fa-caret-up" aria-hidden="true" style="    margin-bottom: -8px;"></i> #}
+                        {# <i class="fa fa-caret-down" aria-hidden="true"></i> #}
+                        {# </div> #}
+                        {# <label for="exampleFormControlSelect1">新着順</label> #}
+                        {# </div> #}
+                    </div>
+                    {% if pagination.totalItemCount > 0 %}
+                    {% endif %}
+                    <ul>
+                        {% for Product in pagination %}
+                            <li>
+                                <div class="ec__box-info-image ec__info-ct-1">
+                                    <div class="row ec__bg-gray">
+                                        <div class="col-sm-4 col-md-3 col-lg-3">
+                                            <img
+                                                src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}"
+                                                alt="{{ Product.name }}">
+                                        </div>
+                                        <div class="col-sm-8 col-md-9 col-lg-9">
+                                            <div class="title">
+                                                <strong>{{ Product.name }}</strong>
+                                            </div>
+                                            <div class="top-left d-flex align-items-center ">
+                                                <div
+                                                    class="box-squar-gray d-flex justify-content-center align-items-center">
+                                                    <i class="fa fa-user" aria-hidden="true"></i></div>
+                                                <span>作成者 : {{ Product.instructor }}</span>
+                                            </div>
+                                            <div class="d-flex align-items-center justify-content-between mt-3">
+                                                {{ Product.create_date|date("m月d日 (D)")|replace({'Mon': "月",'Tue': "火",'Wed': "水",'Thu': "木",'Fri': "金",'Sat': "土",'Sun': "日",}) }}
+                                                <div class="ec__box-join d-flex align-items-center">
+                                                    {% if(Product.getPrice02IncTaxMin) %}
+                                                        <a href="{{ url('seminar_detail', {'id': Product.id}) }}"
+                                                           class="ec__btn-join"
+                                                        >
+                                                            参加
+                                                        </a>
+                                                    {% else %}
+                                                        <a href="{{ url('seminar_detail', {'id': Product.id}) }}"
+                                                           class="ec__btn-join" style="background-color: #dc3545;"
+                                                        >
+                                                            無料
+                                                        </a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <div class="ec-pagerRole">
+                        {% include "pager.twig" with {'pages': pagination.paginationData} %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+
+
+    var start_time = '{{ app.session.get('eccube.admin.product.search.start_time')  }}';
+
+    $(document).ready(function() {
+        $('.clear-button').on('click', function() {
+            $(this).closest('form').find("input[type=text], textarea").val("");
+            $('#category_id').prop('selectedIndex',0);
+            $('#search_date').val('');
+            $('#calendar').fullCalendar('removeEvents',event._id);
+            $('#search_form').submit();
+        });
+
+    });
+
+    $('#calendar').fullCalendar({
+        clicked_once : true,
+        longPressDelay: 0,
+        height: 'auto',
+        events: [
+            {
+                start: start_time,
+                end: start_time,
+                display: 'background',
+                color: '#ff9f89'
+            }
+        ],
+        header: {
+            // title, prev, next, prevYear, nextYear, today
+            left: 'prev',
+            center: 'title',
+            right: 'next'
+        },
+        dayClick: function (date, jsEvent, view) {
+            $('.fc-day').each(function () {
+                $(this).removeClass("fc-state-highlight");
+            });
+
+            $("td[data-date=" + date.format() + "]").addClass("fc-state-highlight");
+            $("#search_date").val(date.format());
+        },
+        // 月名称
+        monthNames: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        // 月略称
+        monthNamesShort: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+        // 曜日名称
+        dayNames: ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
+        // 曜日略称
+        dayNamesShort: ['日', '月', '火', '水', '木', '金', '土'],
+        // 選択可
+        selectable: true,
+        // 選択時にプレースホルダーを描画
+        selectHelper: true,
+
+        yearSuffix: "CE",
+})
+</script>
+{% endblock %}

@@ -1,0 +1,1257 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends '@admin/default_frame.twig' %}
+
+{% set menus = ['seminar', 'seminar_edit'] %}
+
+{% block title %}{{ 'admin.seminar.seminar_registration'|trans }}{% endblock %}
+{% block sub_title %}{{ 'admin.seminar.seminar_management'|trans }}{% endblock %}
+
+{% form_theme form '@admin/Form/bootstrap_4_horizontal_layout.html.twig' %}
+
+{% block stylesheet %}
+    <link rel="stylesheet" href="{{ asset('assets/css/fileupload/jquery.fileupload.css', 'admin') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/fileupload/jquery.fileupload-ui.css', 'admin') }}">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="{{ asset('assets/css/tempusdominus-bootstrap-4.min.css', 'admin') }}">
+    <style>
+        #thumb div {
+            float: left;
+            margin: 4px
+        }
+
+        .ui-state-highlight {
+            height: 70px;
+            width: 70px;
+            border: dashed 1px #ccc;
+            background: #fff;
+        }
+
+        .datepicker-days th.dow:first-child,
+        .datepicker-days td:first-child {
+            color: #f00;
+        }
+
+        .datepicker-days th.dow:last-child,
+        .datepicker-days td:last-child {
+            color: #00f;
+        }
+
+        label.error {
+            color: red;
+            margin-top: 10px;
+            display: block;
+        }
+
+    </style>
+{% endblock stylesheet %}
+
+{% block javascript %}
+    <script src="{{ asset('assets/js/vendor/fileupload/vendor/jquery.ui.widget.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.iframe-transport.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload-process.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/fileupload/jquery.fileupload-validate.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/moment.min.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/moment-with-locales.min.js', 'admin') }}"></script>
+    <script src="{{ asset('assets/js/vendor/tempusdominus-bootstrap-4.min.js', 'admin') }}"></script>
+    <script>const bootstrapTooltip = $.fn.tooltip.noConflict();</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script type="text/javascript"
+            src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
+    <script>
+        $.fn.tooltip = bootstrapTooltip;
+        $(document).on('drop dragover', function (e) {
+            e.preventDefault();
+        });
+        $(function () {
+            // datetimepicker で value が消えてしまうので data-value に保持しておく
+            $('input.datetimepicker-input').each(function () {
+                $(this).data('value', $(this).val());
+            });
+
+            $('input.datetimepicker-input').datetimepicker({
+                locale: '{{ eccube_config.locale }}',
+                format: 'YYYY-MM-DD HH:mm:ss',
+                useCurrent: false,
+                buttons: {
+                    showToday: true,
+                    showClose: true
+                },
+            });
+
+            // datetimepicker で value が消えてしまうので更新
+            $('input.datetimepicker-input').each(function () {
+                $(this).val($(this).data('value'));
+            });
+            // Todo: fix drag&drop style
+            $("#thumb").sortable({
+                cursor: 'move',
+                opacity: 0.7,
+                placeholder: 'ui-state-highlight',
+                update: function (event, ui) {
+                    updateSortNo();
+                }
+            });
+            {% if has_class == false %}
+            if ($("#{{ form.class.stock_unlimited.vars.id }}").prop("checked")) {
+                $("#{{ form.class.stock.vars.id }}").attr("disabled", "disabled").val('');
+            } else {
+                $("#{{ form.class.stock.vars.id }}").removeAttr("disabled");
+            }
+            $("#{{ form.class.stock_unlimited.vars.id }}").on("click change", function () {
+                if ($(this).prop("checked")) {
+                    $("#{{ form.class.stock.vars.id }}").attr("disabled", "disabled").val('');
+                } else {
+                    $("#{{ form.class.stock.vars.id }}").removeAttr("disabled");
+                }
+            });
+            {% endif %}
+            var proto_img = '<div class="c-form__fileUploadThumbnail" style="background-image:url(\'__path__\');">' +
+                '<a class="delete-image"><i class="fa fa-times" aria-hidden="true"></i></a>' +
+                '</div>';
+            var proto_add = '{{ form_widget(form.add_images.vars.prototype) }}';
+            var proto_del = '{{ form_widget(form.delete_images.vars.prototype) }}';
+            {% for image in form.images %}
+            var $img = $(proto_img.replace(/__path__/g, '{{ asset(image.vars.value, 'save_image') }}'));
+            var $widget = $('{{ form_widget(image) }}');
+            $widget.val('{{ image.vars.value }}');
+            $("#thumb").append($img.append($widget));
+            {% endfor %}
+            {% for add_image in form.add_images %}
+            var $img = $(proto_img.replace(/__path__/g, '{{ asset(add_image.vars.value, 'temp_image') }}'));
+            var $widget = $('{{ form_widget(add_image) }}');
+            $widget.val('{{ add_image.vars.value }}');
+            $("#thumb").append($img.append($widget));
+            {% endfor %}
+            {% for delete_image in form.delete_images %}
+            $("#thumb").append('{{ form_widget(delete_image) }}');
+            {% endfor %}
+            var hideThumbnail = function () {
+                if ($("#thumb div").length > 0) {
+                    $("#icon_no_image").css("display", "none");
+                    $('#message').html("{{ 'admin.common.drag_and_drop_description'|trans }}");
+                } else {
+                    $("#icon_no_image").css("display", "");
+                    $('#message').empty();
+                }
+            };
+            // Todo: fix update sort by drag&drop
+            var updateSortNo = function () {
+                $("#thumb div").each(function (index) {
+                    $(this).find(".sort_no_images").remove();
+                    filename = $(this).find("input[type='hidden']").val();
+                    $sortNo = $('<input type="hidden" class="sort_no_images" name="sort_no_images[]" />');
+                    $sortNo.val(filename + '//' + parseInt(index + 1));
+                    $(this).append($sortNo);
+                });
+            };
+            hideThumbnail();
+            updateSortNo();
+            // Delete of images
+            var count_del = 0;
+            $("#thumb").on("click", '.delete-image', function () {
+                var $new_delete_image = $(proto_del.replace(/__name__/g, count_del));
+                var thumbnail = $(this).parents('div.c-form__fileUploadThumbnail');
+                var src = $(thumbnail).find('input').val();
+                $new_delete_image.val(src);
+                $("#thumb").append($new_delete_image);
+                $(thumbnail).remove();
+                hideThumbnail();
+                updateSortNo();
+                count_del++;
+            });
+            var count_add = {{ form.add_images|length|default(0) }};
+            $('#{{ form.product_image.vars.id }}').fileupload({
+                url: "{{ url('admin_product_image_add') }}",
+                type: "post",
+                sequentialUploads: true,
+                dataType: 'json',
+                dropZone: $('#upload-zone'),
+                done: function (e, data) {
+                    $('.progress').hide();
+                    $.each(data.result.files, function (index, file) {
+                        var path = '{{ asset('', 'temp_image') }}' + file;
+                        var $img = $(proto_img.replace(/__path__/g, path));
+                        var $new_img = $(proto_add.replace(/__name__/g, count_add));
+                        $new_img.val(file);
+                        $child = $img.append($new_img);
+                        $('#thumb').append($child);
+                        count_add++;
+                    });
+                    hideThumbnail();
+                    updateSortNo();
+                },
+                fail: function (e, data) {
+                    alert("{{ 'admin.common.upload_error'|trans }}");
+                },
+                always: function (e, data) {
+                    $('.progress').hide();
+                    $('.progress .progress-bar').width('0%');
+                },
+                start: function (e, data) {
+                    $('.progress').show();
+                },
+                acceptFileTypes: /(\.|\/)(gif|jpe?g|png)$/i,
+                maxFileSize: 10000000,
+                maxNumberOfFiles: 10,
+                progressall: function (e, data) {
+                    var progress = parseInt(data.loaded / data.total * 100, 10);
+                    $('.progress .progress-bar').css(
+                        'width',
+                        progress + '%'
+                    );
+                },
+                processalways: function (e, data) {
+                    if (data.files.error) {
+                        alert("{{ 'admin.common.upload_error'|trans }}");
+                    }
+                }
+            });
+            // 画像アップロード
+            $('#file_upload').on('click', function () {
+                $('#{{ form.product_image.vars.id }}').click();
+            });
+
+            var mainTags = $('#allTags');
+            var adminProductTag = $('#admin_product_Tag');
+            $('input', adminProductTag).each(function () {
+                if ($(this).is(':checked')) {
+                    $('button[data-tag-id="' + $(this).val() + '"]').removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+                }
+            });
+            mainTags.on('click', 'button.btn', function () {
+                var btnTag = $(this);
+                var tagId = btnTag.data('tag-id');
+                if (btnTag.hasClass('btn-outline-primary')) {
+                    btnTag.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+                    $('input[value="' + tagId + '"]', mainTags).prop('checked', false);
+                } else {
+                    btnTag.removeClass('btn-outline-secondary').addClass('btn-outline-primary');
+                    $('input[value="' + tagId + '"]', mainTags).prop('checked', true);
+                }
+            });
+
+            var confirmFormChange = function (form, target, modal) {
+                var returnLink = form.find('input[type="hidden"][name*="return_link"]'),
+                    saveBtn = modal.find('a[data-action="save"]'),
+                    cancelBtn = modal.find('a[data-action="cancel"]');
+                modal.on('hidden.bs.modal', function () {
+                    returnLink.val('');
+                });
+                saveBtn.on('click', function () {
+                    returnLink.val($(this).data('return-link'));
+                    $(this).addClass('disabled');
+                    form.submit();
+                });
+                target.on('click', function () {
+                    modal.find('.modal-body .screen-name').text($(this).attr('title'));
+                    modal.modal('show');
+                    saveBtn.data('return-link', $(this).attr('href'));
+                    cancelBtn.attr('href', $(this).attr('href'));
+                    return false;
+                });
+            };
+            confirmFormChange($('#form1'), $('a[data-action="confirm"]'), $('#confirmFormChangeModal'))
+        });
+
+        // searchWordの実行
+        $('#search-category').on('input', function () {
+            searchWord($(this).val(), $('.category-li'));
+        });
+
+        $(document).ready(function () {
+
+
+            $("#form_schedule").validate({
+                ignore: ":hidden",
+                rules: {
+                    duration: {
+                        required: true
+                    },
+                    start_time: {
+                        required: true
+                    },
+                    password: {
+                        maxlength : 10
+                    }
+                },
+                errorPlacement: function (error, element) {
+                    console.log('dd', element.attr("name"))
+                    if (element.attr("name") == "duration") {
+                        error.appendTo(".error-duration");
+                    } else {
+                        error.insertAfter(element)
+                    }
+                }
+            });
+
+            $.extend($.validator.messages, {
+                required: "このフィールドは必須です。",
+                remote: "このフィールドを修正してください。",
+                email: "有効なEメールアドレスを入力してください。",
+                url: "有効なURLを入力してください。",
+                date: "有効な日付を入力してください。",
+                dateISO: "有効な日付（ISO）を入力してください。",
+                number: "有効な数字を入力してください。",
+                digits: "数字のみを入力してください。",
+                creditcard: "有効なクレジットカード番号を入力してください。",
+                equalTo: "同じ値をもう一度入力してください。",
+                extension: "有効な拡張子を含む値を入力してください。",
+                maxlength: $.validator.format("{0} 文字以内で入力してください。"),
+                minlength: $.validator.format("{0} 文字以上で入力してください。"),
+                rangelength: $.validator.format("{0} 文字から {1} 文字までの値を入力してください。"),
+                range: $.validator.format("{0} から {1} までの値を入力してください。"),
+                step: $.validator.format("{0} の倍数を入力してください。"),
+                max: $.validator.format("{0} 以下の値を入力してください。"),
+                min: $.validator.format("{0} 以上の値を入力してください。")
+            });
+
+
+
+
+            $(document).on("click", "#open-modal", function () {
+                var topic = $('#admin_product_name').val();
+                if (topic != '') {
+                    $('input[name ="topic"]').val(topic);
+                }
+                $('#createScheduleModal').modal('toggle');
+
+                $('#create_metting').on('click', function (event) {
+                    event.preventDefault();
+                    var form = $("#form_schedule");
+
+                    form.valid();
+                    if (!form.valid()) {
+                        return false;
+                    }
+
+                    $.ajax({
+                        url: "{{ url('admin_seminar_schedule_new') }}",
+                        type: 'POST',
+                        data: $('#form_schedule').serialize(),
+                        dataType: 'html',
+                    }).done(function (html) {
+                        document.getElementById("form_schedule").reset();
+                        $(".list-meeting").append(html);
+                        $('#createScheduleModal').modal('toggle')
+                    });
+                });
+            });
+
+            $(document).on("click", ".delete-schedule", function () {
+                var id = $(this).attr('data-id');
+                $.ajax({
+                    url: "{{ url('admin_seminar_schedule_delete') }}",
+                    type: 'DELETE',
+                    data: {
+                        id: $(this).attr('data-id')
+                    },
+                    dataType: 'json',
+                }).done(function (data) {
+                    if (data['code'] == 204) {
+                        $('.schedule' + id).remove();
+                    }
+                });
+            });
+
+            $(document).on("click", ".send-url-schedule", function () {
+                var id = $(this).attr('data-id');
+                $.ajax({
+                    url: "{{ url('admin_seminar_send_url_schedule') }}",
+                    type: 'POST',
+                    data: {
+                        id: $(this).attr('data-id')
+                    },
+                    dataType: 'json',
+                }).done(function (data) {
+                    alert(data['message']);
+                });
+            });
+        });
+    </script>
+{% endblock javascript %}
+
+{% block main %}
+    <!-- 移動確認モーダル-->
+    <div class="modal fade" id="confirmFormChangeModal" tabindex="-1" role="dialog"
+         aria-labelledby="confirmFormChangeModal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ 'admin.common.move_to_confirm_title'|trans }}</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="screen-name"></p>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-ec-conversion" data-action="save" href="javascript:void(0)">
+                        {{ 'admin.common.move_to_confirm_save_and_move'|trans }}
+                    </a>
+                    <a class="btn btn-ec-sub" data-action="cancel" href="javascript:void(0)">
+                        {{ 'admin.common.move_to_confirm_move_only'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form role="form" name="form1" id="form1" method="post" action="" novalidate enctype="multipart/form-data">
+        {{ form_widget(form._token) }}
+        {# {{ form_widget(form.return_link) }} #}
+        <div class="c-contentsArea__cols">
+            <div class="c-contentsArea__primaryCol">
+                <div class="c-primaryCol">
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="d-inline-block">
+                                    <span class="card-title">
+                                        セミナー情報
+                                    </span>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <a data-toggle="collapse" href="#basicConfig" aria-expanded="false"
+                                       aria-controls="basicConfig">
+                                        <i class="fa fa-angle-up fa-lg"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse show ec-cardCollapse" id="basicConfig">
+                            <div class="card-body">
+                                {% if Product.id %}
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                                 title="{{ 'tooltip.product.product_id'|trans }}">
+                                                <span>{{ 'admin.product.product_id'|trans }}</span>
+                                                <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col">
+                                            <p>{{ Product.id }}</p>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="row">
+                                    <div class="col-3">
+                                        <div class="d-inline-block">
+                                            <span>{{ 'admin.seminar.seminar_title'|trans }}</span>
+                                            <span class="badge badge-primary ml-1">
+                                                {{ 'admin.common.required'|trans }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col mb-2">
+                                        {{ form_widget(form.name) }}
+                                        {{ form_errors(form.name) }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-3">
+                                        <div class="d-inline-block">
+                                            <span>{{ 'admin.seminar.seminar_instructor'|trans }}</span>
+                                            <span class="badge badge-primary ml-1">
+                                                {{ 'admin.common.required'|trans }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="col mb-2">
+                                        {{ form_widget(form.instructor) }}
+                                        {{ form_errors(form.instructor) }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-3">
+                                        <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                             title="{{ 'tooltip.product.image'|trans }}">
+                                            <span>{{ 'admin.product.image'|trans }}</span>
+                                            <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                            <br>{{ 'admin.product.image_size'|trans }}
+                                        </div>
+                                    </div>
+                                    <div class="col mb-2">
+                                        <div class="progress" style="display: none;">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                                 role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                                                 aria-valuemax="100"></div>
+                                        </div>
+                                        <div id="thumb" class="c-form__fileUploadThumbnails clearfix"></div>
+                                        <p id="message"></p>
+                                        <div id="upload-zone" class="media py-5 border-ec-dashed mb-2 rounded">
+                                            <div class="media-body">
+                                                <i class="fa fa-cloud-upload fa-3x text-ec-lightGray mx-3 align-middle"
+                                                   aria-hidden="true"></i>
+                                                {{ 'admin.common.drag_and_drop_image_description'|trans }}
+                                                {{ form_widget(form.product_image, { attr : { accept : 'image/*', style : 'display:none;' } }) }}
+                                                {{ form_errors(form.product_image) }}
+                                                <a class="btn btn-ec-regular mr-2"
+                                                   onclick="$('#admin_product_product_image').click()">
+                                                    {{ 'admin.common.file_select'|trans }}
+                                                </a>
+                                            </div><!-- /.media-body -->
+                                        </div><!-- /.media -->
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-3">
+                                        <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                             title="{{ 'tooltip.product.description_detail'|trans }}">
+                                            <span>{{ 'admin.product.description_detail'|trans }}</span>
+                                            <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        {{ form_widget(form.description_detail, { attr : { rows : "8"} }) }}
+                                        {{ form_errors(form.description_detail) }}
+                                        <div class="d-inline-block mb-2" data-toggle="collapse" href="#addComment"
+                                             role="button" aria-expanded="false" aria-controls="addComment">
+                                            <a>
+                                                <i class="fa fa-plus-square-o font-weight-bold mr-1"></i>
+                                                <span class="font-weight-bold text-ec-black">
+                                                    {{ 'admin.product.description_list_seminar__add'|trans }}
+                                                </span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="collapse ec-collapse" id="addComment">
+                                    <div class="row bg-ec-formGray pt-3 mb-2">
+                                        <div class="col-3">
+                                            <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                                 title="{{ 'tooltip.product.description_list'|trans }}">
+                                                <span>{{ 'admin.product.description_list'|trans }}</span>
+                                                <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col mb-4">
+                                            <div>
+                                                {{ form_widget(form.description_list, { attr : { rows : "4"} }) }}
+                                                {{ form_errors(form.description_list) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if has_class == false %}
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <div class="d-inline-block">
+                                                <span>{{ 'admin.product.sale_price'|trans }}</span>
+                                                <span class="badge badge-primary ml-1">
+                                                    {{ 'admin.common.required'|trans }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="col mb-2">
+                                            <div>
+                                                {{ form_widget(form.class.price02) }}
+                                                {{ form_errors(form.class.price02) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div class="row">
+                                    <div class="col-3">
+                                        <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                             title="{{ 'tooltip.product.search_word'|trans }}">
+                                            <span>{{ 'admin.product.search_word'|trans }}</span>
+                                            <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col mb-2">
+                                        <div>
+                                            {{ form_widget(form.search_word) }}
+                                            {{ form_errors(form.search_word) }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% if has_class == false %}
+                                    <div class="row">
+                                        <div class="col-3">
+                                            <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                                 title="{{ 'tooltip.product.product_code'|trans }}">
+                                                <span>{{ 'admin.seminar.seminar_code'|trans }}</span>
+                                                <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                            </div>
+                                        </div>
+                                        <div class="col mb-2">
+                                            <div>
+                                                {{ form_widget(form.class.code) }}
+                                                {{ form_errors(form.class.code) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-3">
+                                        </div>
+                                        <div class="col mb-2">
+                                            {{ form_widget(form.highlight) }}
+                                        </div>
+                                    </div>
+                                    {# end hightlight #}
+                                    <div class="box-schedule">
+                                        <div class="row mt-2">
+                                            <div class="col-3">
+                                                <div class="d-inline-block">
+                                                    <span>セミナーの日程</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-9 mb-2">
+                                                <div id="ex-conversion-action"
+                                                     class="row align-items-center justify-content-end">
+                                                    <div class="col-auto">
+                                                    </div>
+                                                    <div class="col-auto">
+                                                        <button type="button" id="open-modal"
+                                                                class="btn btn-primary  mr-2">
+                                                            追加
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="list-add">
+                                            <div class="list-meeting mb-3 p-2">
+                                                {% if(Schedule|length > 0) %}
+                                                    {% for Metting in Schedule %}
+                                                        <div class="row box-add-form border rounded schedule{{ Metting.id }}">
+                                                            <div class="item-name-id col-1">{{ Metting.id }}</div>
+                                                            <div class="d-flex flex-column content-add-form col-11">
+                                                                <div class="d-flex justify-content-between mb-2">
+                                                                    <div class="box-form-item d-flex">
+                                                                        <div class="span mr-2">開始</div>
+                                                                        <div class="item-select mr-2">
+                                                                            <label>
+                                                                                <input type="text"
+                                                                                       value="{{ Metting.start_time|date('Y-m-d H:i:s') }}"
+                                                                                       name="start_time[]"
+                                                                                       class="form-control" readonly>
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="box-form-item  d-flex">
+                                                                        <div class="span mr-2">経過時間</div>
+                                                                        <div class="item-select mr-2">
+                                                                            <label>
+                                                                                <input type="text"
+                                                                                       value="{{ Metting.duration }}分"
+                                                                                       name="duration[]"
+                                                                                       class="form-control" readonly>
+                                                                            </label>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="box-button d-flex">
+                                                                        <button type="button"
+                                                                                class="btn btn-primary  mr-2 delete-schedule"
+                                                                                data-id="{{ Metting.id }}">
+                                                                            削除
+                                                                        </button>
+                                                                        <button type="button"
+                                                                                class="btn btn-primary send-url-schedule"
+                                                                                data-id="{{ Metting.id }}">
+                                                                            セミナーURLメール送信
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex result-box-form justify-content-between">
+                                                                    <div class="box-form-item box-form-item-2 d-flex">
+                                                                        <div class="span text-nowrap mr-2">ﾐｰﾃｨﾝｸﾞID
+                                                                        </div>
+                                                                        <label>
+                                                                            <input type="text"
+                                                                                   value="{{ Metting.zoom_id }}"
+                                                                                   name="meeting_id[]"
+                                                                                   class="form-control" readonly>
+                                                                        </label>
+                                                                    </div>
+                                                                    <div class="box-form-item box-form-item-2 d-flex">
+                                                                        <div class="span text-nowrap mr-2">パスワード</div>
+                                                                        <label>
+                                                                            <input type="text"
+                                                                                   value="{{ Metting.zoom_password }}"
+                                                                                   name="password[]"
+                                                                                   class="form-control" readonly>
+                                                                        </label>
+                                                                    </div>
+                                                                    <div class="box-form-item box-form-item-5 d-flex">
+                                                                        <div class="span text-nowrap mr-2">招待リンク</div>
+                                                                        <label>
+                                                                            <input type="text"
+                                                                                   value="{{ Metting.join_url }}"
+                                                                                   name="meeting_url[]"
+                                                                                   class="form-control" readonly>
+                                                                        </label>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% if BaseInfo.option_product_tax_rule %}
+                                        <div class="row">
+                                            <div class="col-3">
+                                                <div class="d-inline-block">
+                                                    <span>{{ 'admin.product.tax_rate'|trans }}</span>
+                                                </div>
+                                            </div>
+                                            <div class="col mb-2">
+                                                <div>
+                                                    {{ form_widget(form.class.tax_rate) }}
+                                                    {{ form_errors(form.class.tax_rate) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+
+                                {# エンティティ拡張の自動出力 #}
+                                {% for f in form if f.vars.eccube_form_options.auto_render %}
+                                    {% if f.vars.eccube_form_options.form_theme %}
+                                        {% form_theme f f.vars.eccube_form_options.form_theme %}
+                                        {{ form_row(f) }}
+                                    {% else %}
+                                        <div class="row">
+                                            <div class="col-3">
+                                                <span>{{ f.vars.label|trans }}</span>
+                                            </div>
+                                            <div class="col mb-2">
+                                                <div>
+                                                    {{ form_widget(f) }}
+                                                    {{ form_errors(f) }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if has_class == false %}
+                                    {% for f in form.class if f.vars.eccube_form_options.auto_render %}
+                                        {% if f.vars.eccube_form_options.form_theme %}
+                                            {% form_theme f f.vars.eccube_form_options.form_theme %}
+                                            {{ form_row(f) }}
+                                        {% else %}
+                                            <div class="row">
+                                                <div class="col-3">
+                                                    <span>{{ f.vars.label|trans }}</span>
+                                                </div>
+                                                <div class="col mb-2">
+                                                    <div>
+                                                        {{ form_widget(f) }}
+                                                        {{ form_errors(f) }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                         title="{{ 'tooltip.product.free_area'|trans }}">
+                                        <span
+                                                class="card-title">{{ 'admin.product.free_area__card_title'|trans }}</span>
+                                        <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <a data-toggle="collapse" href="#freeArea" aria-expanded="false"
+                                       aria-controls="freeArea">
+                                        <i class="fa fa-angle-up fa-lg"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse show ec-cardCollapse" id="freeArea">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-3">
+                                        <span>{{ 'admin.product.free_area'|trans }}</span>
+                                    </div>
+                                    <div class="col-9">
+                                        <div>
+                                            {{ form_widget(form.free_area, {id: 'wysiwyg-area', attr : { rows : "8"} }) }}
+                                            {{ form_errors(form.free_area) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <div class="c-contentsArea__secondaryCol">
+                <div class="c-secondaryCol">
+                    {% if id is not null %}
+                        <div class="card rounded border-0 mb-4">
+                            <div class="collapse show ec-cardCollapse" id="preview">
+                                <div class="card-body">
+                                    <div class="d-block text-center">
+                                        <a class="btn btn-block btn-ec-regular"
+                                           target="_blank"
+                                           href="{{ url('product_detail', {id:id}) }}"
+                                           title="{{ 'admin.product.preview'|trans }}">{{ 'admin.product.preview'|trans }}</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="d-inline-block">
+                                        <span
+                                                class="card-title">{{ 'admin.product.category__product_card_title'|trans }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <a data-toggle="collapse" href="#category" aria-expanded="false"
+                                       aria-controls="category">
+                                        <i class="fa fa-angle-up fa-lg"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse show ec-cardCollapse" id="category">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="form-row">
+                                        <div class="col">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text" id="basic-addon1">
+                                                            <i class="fa fa-search"></i>
+                                                    </span>
+                                                </div>
+                                                <input id="search-category" class="form-control" type="search"
+                                                       placeholder="{{ 'admin.product.search_category'|trans }}"
+                                                       aria-label="Search">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {% macro tree(ChoicedIds, Category, form) %}
+                                    {% import _self as selfMacro %}
+                                    <li class="c-directoryTree--registerItem category-li">
+                                        <input type="checkbox" id="admin_product_category_{{ Category.id }}"
+                                               name="admin_product[Category][]" value="{{ Category.id }}"
+                                               {% if Category.id in ChoicedIds %}checked{% endif %}>
+                                        <label
+                                                for="admin_product_category_{{ Category.id }}">{{ Category.name }}</label>
+                                        <ul class="list-unstyled">
+                                            {% for child,ChildCategory in Category.children %}
+                                                {{ selfMacro.tree(ChoicedIds, ChildCategory, form) }}
+                                            {% endfor %}
+                                        </ul>
+                                    </li>
+                                {% endmacro %}
+
+                                <div class="c-directoryTree--register rounded border mb-3 p-3">
+                                    {% import _self as renderMacro %}
+                                    {% for TopCategory in TopCategories %}
+                                        <ul class="list-unstyled">
+                                            {{ renderMacro.tree(ChoicedCategoryIds, TopCategory, form.Category) }}
+                                        </ul>
+                                    {% endfor %}
+                                    {{ form_errors(form.Category) }}
+                                </div>
+                                <div class="d-block text-center">
+                                    <a class="btn btn-block btn-ec-regular"
+                                       data-action="confirm"
+                                       href="{{ path('admin_product_category') }}"
+                                       title="{{ 'admin.common.move_to_confirm_message'|trans({
+                                           '%name%' : 'admin.product.category_management'|trans}) }}">{{ 'admin.product.move_to_category'|trans }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="d-inline-block">
+                                        <span class="card-title">
+                                            {{ 'admin.product.tag__product_card_title'|trans }}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <a data-toggle="collapse" href="#tag" aria-expanded="false" aria-controls="tag">
+                                        <i class="fa fa-angle-up fa-lg"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="collapse show ec-cardCollapse" id="tag">
+                            <div class="card-body">
+                                {% if(Tags|length > 0) %}
+                                    {% for Tag in Tags %}
+                                        <div class="d-inline-block mb-2 mr-2">
+                                            <button class="btn btn-outline-primary"
+                                                    type="button">{{ Tag.name }}</button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+
+                                <div class="d-block mb-3" data-toggle="collapse" href="#allTags" role="button"
+                                     aria-expanded="false" aria-controls="allTags">
+                                    <a>
+                                        <i class="fa fa-plus-square-o font-weight-bold mr-1"></i>
+                                        <span class="font-weight-bold">{{ 'admin.product.save_tag'|trans }}</span>
+                                    </a>
+                                </div>
+                                <div class="collapse p-3 bg-ec-lightGray mb-3 ec-collapse" id="allTags">
+                                    <div class="d-none">
+                                        {{ form_widget(form.Tag) }}
+                                    </div>
+                                    {% if(TagsList|length > 0) %}
+                                        {% for Tag in TagsList %}
+                                            <div class="d-inline-block mb-2 mr-2">
+                                                <button class="btn btn-outline-secondary" type="button"
+                                                        data-tag-id="{{ Tag.id }}">{{ Tag.name }}</button>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+
+                                    <div class="d-block mb-3" data-toggle="collapse" href="#allTags" role="button"
+                                         aria-expanded="false" aria-controls="allTags"></div>
+                                </div>
+
+                                <div class="d-block text-center">
+                                    <a href="{{ path('admin_product_tag') }}"
+                                       class="btn btn-block btn-ec-regular"
+                                       data-action="confirm"
+                                       title="{{ 'admin.common.move_to_confirm_message'|trans({
+                                           '%name%' : 'admin.product.tag_management'|trans }) }}">{{ 'admin.product.move_to_tag'|trans }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <span class="card-title">{{ 'admin.product.create_date__card_title'|trans }}</span>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <a data-toggle="collapse" href="#update" aria-expanded="false"
+                                       aria-controls="update">
+                                        <i class="fa fa-angle-up fa-lg"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse show ec-cardCollapse" id="update">
+                            <div class="card-body">
+                                <div class="row mb-2">
+                                    <div class="col">
+                                        <i class="fa fa-flag mr-1"></i>
+                                        <span>{{ 'admin.common.create_date'|trans }}</span>
+                                    </div>
+                                    <div class="col">
+                                        <span>：{{ Product.create_date|date_min }}</span>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col">
+                                        <i class="fa fa-refresh mr-1"></i>
+                                        <span>{{ 'admin.common.update_date'|trans }}</span>
+                                    </div>
+                                    <div class="col">
+                                        <span>：{{ Product.update_date|date_min }}</span>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="col">
+                                        <i class="fa fa-user mr-1"></i>
+                                        <span>{{ 'admin.common.last_updater'|trans }}</span>
+                                    </div>
+                                    <div class="col">
+                                        <span>：{{ Product.Creator ? Product.Creator.name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card rounded border-0 mb-4">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-8">
+                                    <div class="d-inline-block" data-tooltip="true" data-placement="top"
+                                         title="{{ 'tooltip.product.shop_memo'|trans }}">
+                                        <span class="card-title">
+                                            {{ 'admin.common.shop_memo'|trans }}
+                                            <i class="fa fa-question-circle fa-lg ml-1"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-right">
+                                    <a data-toggle="collapse" href="#shopMemo" aria-expanded="false"
+                                       aria-controls="shopMemo">
+                                        <i class="fa fa-angle-up fa-lg"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse show ec-cardCollapse" id="shopMemo">
+                            <div class="card-body">
+                                {{ form_widget(form.note, { attr : { rows : "8"} }) }}
+                                {{ form_errors(form.note) }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="c-conversionArea">
+            <div class="c-conversionArea__container">
+                <div class="row justify-content-between align-items-center">
+                    <div class="col-6">
+                        <div class="c-conversionArea__leftBlockItem">
+                            <a class="c-baseLink"
+                               href="{{ path('admin_product_page', { page_no : app.session.get('eccube.admin.product.search.page_no')|default('1') } ) }}"
+                               data-action="confirm"
+                               title="{{ 'admin.common.move_to_confirm_message'|trans({'%name%' : 'admin.product.product_list'|trans }) }}">
+                                <i class="fa fa-backward"
+                                   aria-hidden="true"></i><span>{{ 'admin.product.product_seminar_list'|trans }}</span>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div id="ex-conversion-action" class="row align-items-center justify-content-end">
+                            <div class="col-auto">
+                                {{ form_widget(form.Status) }}
+                                {{ form_errors(form.Status) }}
+                                <input type="hidden" id="admin_product_class_stock_unlimited"
+                                       name="admin_product[class][stock_unlimited]" value="1">
+                                <input type="hidden" id="admin_product_class_sale_type"
+                                       name="admin_product[class][sale_type]" value="50">
+                            </div>
+                            <div class="col-auto">
+                                <button class="btn btn-ec-conversion px-5"
+                                        type="submit">{{ 'admin.common.registration'|trans }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <!-- Modal -->
+
+    <form role="form" name="form_schedule" id="form_schedule" method="post" action="" novalidate
+          enctype="multipart/form-data">
+        {{ form_widget(form._token) }}
+        <div class="modal fade" id="createScheduleModal" tabindex="-1"
+             role="dialog" aria-labelledby="exampleModalLabel"
+             aria-hidden="true">
+
+            <div class="modal-dialog max-w-50-per"
+                 role="document">
+                <div class="modal-content modal-content-form p-3">
+                    <div class="content">
+                        <div class="title">{{ 'admin.seminar.seminar_topic'|trans }}</div>
+                        <div class="my-3">
+                            <input type="text" name="topic" required="required" class="form-control"
+                                   placeholder="ZOOMミーティング">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-2 text-nowrap">
+                                開始：　
+                            </div>
+                            <div class="col-10">
+                                <div class="box-form-item  d-flex">
+                                    <div class="item-select w-70 mr-2">
+                                        <input type="text" id="admin_search_seminar_create_datetime_start"
+                                               name="start_time" class="datetimepicker-input form-control"
+                                               data-target="#admin_search_seminar_create_datetime_start"
+                                               data-toggle="datetimepicker">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-2 text-nowrap">
+                                経過時間：
+                            </div>
+                            <div class="col-10">
+                                <div class="box-form-item d-flex">
+                                    <div class="item-select mr-2 w-70" style="display: inline-block">
+                                        <input type="number" name="duration" required="required" id="duration"
+                                                     class="schedule_duration duration form-control"
+                                                     min="1"
+                                                     style="display: inline-block !important; margin-right: 10px; width: 75px"> 分
+                                        <div class="error-duration">
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-bottom">
+                        </div>
+                        <div class="border-bottom">
+                            <div class="title">パスコード</div>
+                            <div class="justify-content-between max-w-50-per">
+                                <input type="text" name="password" required="required" class="form-control"
+                                       placeholder="1234567890">
+                            </div>
+                        </div>
+                        <div class="border-bottom">
+                            <div class="title">ビデオ
+                            </div>
+                            <div class="d-flex">
+                                <div class="box-radius d-flex mr-5">
+                                    <span>ホスト：</span>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio"
+                                               class="custom-control-input"
+                                               id="customRadio3"
+                                               name="host_video" value="1" checked>
+                                        <label class="custom-control-label"
+                                               for="customRadio3">オン</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio"
+                                               class="custom-control-input"
+                                               id="customRadio4"
+                                               name="host_video" value="0">
+                                        <label class="custom-control-label"
+                                               for="customRadio4">オフ</label>
+                                    </div>
+                                </div>
+                                <div class="box-radius d-flex">
+                                    <span>参加者 :</span>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio"
+                                               class="custom-control-input"
+                                               id="customRadio5"
+                                               name="participant_video" value="1" checked>
+                                        <label class="custom-control-label"
+                                               for="customRadio5">オン</label>
+                                    </div>
+                                    <div class="custom-control custom-radio custom-control-inline">
+                                        <input type="radio"
+                                               class="custom-control-input"
+                                               id="customRadio6"
+                                               name="participant_video" value="0">
+                                        <label class="custom-control-label"
+                                               for="customRadio6">オフ</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-bottom">
+                            <div class="title">オーディオ
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="radio_telephony"
+                                           name="radio" value="telephony">
+                                    <label class="custom-control-label"
+                                           for="radio_telephony">電話</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="audio_voip"
+                                           name="audio" value="voip">
+                                    <label class="custom-control-label"
+                                           for="audio_voip">コンピューターのオーディオ</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="audio_both"
+                                           name="audio" value="both" checked>
+                                    <label class="custom-control-label"
+                                           for="audio_both">電話とコンピューターのオーディオ　</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-bottom">
+                            <div class="title">ミーティングを自動記録
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="auto_recording_local"
+                                           name="auto_recording" value="local">
+                                    <label class="custom-control-label"
+                                           for="auto_recording_local">ローカルコンピューター上</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="auto_recording_cloud"
+                                           name="auto_recording" value="cloud">
+                                    <label class="custom-control-label"
+                                           for="auto_recording_cloud">クラウド内</label>
+                                </div>
+                                <div class="custom-control custom-radio custom-control-inline">
+                                    <input type="radio"
+                                           class="custom-control-input"
+                                           id="auto_recording_none"
+                                           name="auto_recording" value="none" checked>
+                                    <label class="custom-control-label"
+                                           for="auto_recording_none">無効</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="title">詳細オプション</div>
+                            <div class="d-flex flex-column ml-100-ct">
+                                <label class="checkbox-inline"><input
+                                            type="checkbox" name="waiting_room"
+                                            value="1">特合室</label>
+                                <label class="checkbox-inline"><input
+                                            type="checkbox" name="join_before_host"
+                                            value="1">ホストの前の参加を有効する</label>
+                                <label class="checkbox-inline"><input
+                                            type="checkbox" name="mute_upon_entry"
+                                            value="1">入室時に参加者をミュートにする</label>
+                                <label class="checkbox-inline"><input
+                                            type="checkbox" name="meeting_authentication"
+                                            value="1">認証されていますユーザーしか参加できません</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer modal-footer-form-ct">
+                        <button type="button" class="btn btn-primary" id="create_metting">保存</button>
+                        <button type="button" data-dismiss="modal" class="btn btn-outline-primary">キャンセル</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

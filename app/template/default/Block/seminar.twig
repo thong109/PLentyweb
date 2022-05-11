@@ -1,0 +1,179 @@
+<div class="area__seminar">
+    <div class="wrap">
+        <h2 class="title-area">セミナー</h2>
+
+        <div class="title-cont">
+            <h3 class="title">新着セミナー</h3>
+            <a class="view-all" href="{{ url('seminar_list', {order_by: "latest"}) }}">もっと見る ▶</a>
+        </div>
+        {% set seminarLatestList = getTopProducts(50, null) %}
+        <div class="row seminar__list mb-5">
+            {% for index,Product in seminarLatestList %}
+                <div class="col-12 sol-sm-6 col-md-3 mb-2">
+                    <a href="{{ url('seminar_detail', {id: Product.id}) }}">
+                        <div class="product__thumb">
+                            <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}">
+                        </div>
+                        <div class="seminar__name">{{ Product.name }}</div>
+                        <div class="seminar__time">
+                            <span class="date">10月21日（水）</span>
+                            {% if Product.ProductSeminar|length > 1 %}
+                                <span class="schedule">他日程有</span>
+                            {% endif %}
+                        </div>
+                        {% if Product.ProductCategories is not empty %}
+                            {% for ProductCategory in Product.ProductCategories %}
+                                {% if loop.last == true %}
+                                <p class="seminar__ctg">
+                                    {% for Category in ProductCategory.Category.path %}
+                                        {{ Category.name }}
+                                        {%- if loop.last == false %}
+                                            /
+                                        {% endif -%}
+                                    {% endfor %}
+                                </p>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="seminar__ctg">&nbsp;</p>
+                        {% endif %}
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="clearfix">
+            <div class="title-cont">
+                <h3 class="title">おすすめセミナー</h3>
+                <a class="view-all" href="{{ url('seminar_list', {order_by: "latest", highlight: 1}) }}">もっと見る ▶</a>
+            </div>
+            {% set seminarHighlightList = getTopProducts(50, 1) %}
+            <div class="row seminar__list mb-5">
+                {% for index,Product in seminarHighlightList %}
+                    <div class="col-12 sol-sm-6 col-md-3 mb-2">
+                        <a href="{{ url('seminar_detail', {id: Product.id}) }}">
+                            <div class="product__thumb">
+                                <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}">
+                            </div>
+                            <div class="seminar__name">{{ Product.name }}</div>
+                            <div class="seminar__time">
+                                <span class="date">10月21日（水）</span>
+{#                                <span class="schedule">他日程有</span>#}
+                                {% if Product.ProductSeminar|length > 1 %}
+                                    <span class="schedule">他日程有</span>
+                                {% endif %}
+                            </div>
+{#                            <p class="seminar__ctg">カテゴリー／サブカテゴリー</p>#}
+                            {% if Product.ProductCategories is not empty %}
+                                {% for ProductCategory in Product.ProductCategories %}
+                                    {% if loop.last == true %}
+                                        <p class="seminar__ctg">
+                                            {% for Category in ProductCategory.Category.path %}
+                                                {{ Category.name }}
+                                                {%- if loop.last == false %}
+                                                    /
+                                                {% endif -%}
+                                            {% endfor %}
+                                        </p>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p class="seminar__ctg">&nbsp;</p>
+                            {% endif %}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="clearfix">
+            <div class="title-cont">
+                <h3 class="title">最近開催予定</h3>
+                <a class="view-all" href="{{ url('seminar_list', {mode: 'commingsoon'}) }}">もっと見る ▶</a>
+            </div>
+            {% set seminarUpComingList = getTopProducts(50, null, 'commingsoon') %}
+            <div class="row seminar__list mb-5">
+                {% for index,Product in seminarUpComingList %}
+                    <div class="col-12 sol-sm-6 col-md-3 mb-2">
+                        <a href="{{ url('seminar_detail', {id: Product.id}) }}">
+                            <div class="product__thumb">
+                                <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}">
+                            </div>
+                            <div class="seminar__name">{{ Product.name }}</div>
+                            <div class="seminar__time">
+                                <span class="date">10月21日（水）</span>
+{#                                 <span class="schedule">他日程有</span>#}
+                                {% if Product.ProductSeminar|length > 1 %}
+                                    <span class="schedule">他日程有</span>
+                                {% endif %}
+                            </div>
+{#                            <p class="seminar__ctg">カテゴリー／サブカテゴリー</p>#}
+                            {% if Product.ProductCategories is not empty %}
+                                {% for ProductCategory in Product.ProductCategories %}
+                                    {% if loop.last == true %}
+                                        <p class="seminar__ctg">
+                                            {% for Category in ProductCategory.Category.path %}
+                                                {{ Category.name }}
+                                                {%- if loop.last == false %}
+                                                    /
+                                                {% endif -%}
+                                            {% endfor %}
+                                        </p>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p class="seminar__ctg">&nbsp;</p>
+                            {% endif %}
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="clearfix area__video">
+            <div class="title-cont">
+                <h3 class="title">動画で学ぶ</h3>
+                <a class="view-all" href="{{ url('product_list', {sale_type_id: 30}) }}">もっと見る ▶</a>
+            </div>
+            {% set videoList = getTopProducts(30) %}
+            <div class="row seminar__list mb-3">
+                {% for index,Product in videoList %}
+                <div class="col-12 sol-sm-6 col-md-3 mb-2">
+                    <a href="{{ url('product_detail', {id: Product.id}) }}">
+
+                        <div class="product__thumb _video">
+                            <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}">
+                            {#<span class="video-time">12:34</span>#}
+                        </div>
+                        <div class="seminar__name">{{ Product.name }}</div>
+                        <div class="seminar__time">
+                            <span class="date">10月21日（水）</span>
+{#                            <span class="schedule">他日程有</span>#}
+                            {% if Product.ProductSeminar|length > 1 %}
+                                <span class="schedule">他日程有</span>
+                            {% endif %}
+                        </div>
+{#                        <p class="seminar__ctg">カテゴリー／サブカテゴリー</p>#}
+                        {% if Product.ProductCategories is not empty %}
+                            {% for ProductCategory in Product.ProductCategories %}
+                                {% if loop.last == true %}
+                                    <p class="seminar__ctg">
+                                        {% for Category in ProductCategory.Category.path %}
+                                            {{ Category.name }}
+                                            {%- if loop.last == false %}
+                                                /
+                                            {% endif -%}
+                                        {% endfor %}
+                                    </p>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="seminar__ctg">&nbsp;</p>
+                        {% endif %}
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

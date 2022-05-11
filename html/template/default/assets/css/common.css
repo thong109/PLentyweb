@@ -1,0 +1,295 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/*
+    Created on : 01-10-2020, 10:00:00
+    Author     : HUNG.ND
+*/
+*, *:before, *:after {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Noto Sans JP", sans-serif, Meiryo;
+  color: #333;
+  width: 100%;
+  font-weight: 400;
+  background-color: #ebebeb;
+  font-size: 14px;
+  word-break: break-word;
+  word-wrap: break-word;
+  white-space: normal;
+  line-height: 1.5;
+}
+
+.clearfix:after {
+  clear: both;
+  display: block;
+  content: "";
+}
+
+ol, ul, dl {
+  padding-left: 0;
+  list-style: none;
+  margin: 0;
+}
+
+a {
+  color: #374349;
+  transition: all 0.4s;
+}
+a:hover {
+  text-decoration: none;
+  color: #7BAA17;
+}
+a:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+img {
+  max-width: 100%;
+}
+img:focus {
+  outline: none;
+}
+
+button {
+  -webkit-appearance: value;
+  -moz-appearance: value;
+       appearance: value;
+}
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+input:focus, textarea:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+@font-face {
+  font-family: "Yu Mincho";
+  src: url("../fonts/yumindb.ttf") format("truetype");
+  font-weight: 500;
+}
+/* @media (max-width:$viewport-sm) {}  */
+.wrap {
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+@media (max-width: 991px) {
+  .wrap {
+    padding: 0 15px;
+  }
+}
+
+#wrapper {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/*-----HEADER-----*/
+#header {
+  height: 80px;
+  background-color: #cddff3;
+}
+@media (max-width: 767px) {
+  #header {
+    height: 60px;
+  }
+}
+#header .wrap {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#header .head__left {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+#header .head__left .logo {
+  width: 130px;
+  overflow: hidden;
+}
+@media (max-width: 767px) {
+  #header .head__left .logo {
+    width: 90px;
+  }
+}
+#header .head__left .head__search {
+  margin-left: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 35px;
+  background-color: #fff;
+  width: 300px;
+  border-radius: 5px;
+}
+@media (max-width: 767px) {
+  #header .head__left .head__search {
+    display: none;
+  }
+}
+#header .head__left .head__search .search__input {
+  padding: 2px 8px;
+  width: calc(100% - 35px);
+  border: none;
+  background-color: transparent;
+}
+#header .head__left .head__search .search__btn {
+  font-size: 18px;
+  border: none;
+  background-color: transparent;
+  width: 35px;
+  height: 100%;
+}
+#header .head__right {
+  display: flex;
+  align-items: center;
+}
+#header .head__right .btn-control {
+  margin-left: 5px;
+}
+@media (max-width: 767px) {
+  #header .head__right .btn-control {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+  }
+  .text-registration{
+    display: none;
+  }
+
+}
+@media (max-width: 767px) {
+  #header .head__right .btn-control .btn-text {
+    display: none;
+  }
+}
+#header .head__right .btn-control .btn-icon {
+  display: none;
+}
+@media (max-width: 767px) {
+  #header .head__right .btn-control .btn-icon {
+    display: block;
+  }
+}
+#header .head__right .loginted {
+  height: 42px;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+@media (max-width: 767px) {
+  #header .head__right .loginted {
+    border-radius: 50%;
+    padding: 2px;
+    height: 40px;
+    width: 40px;
+  }
+}
+#header .head__right .loginted .user__thumb {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  overflow: hidden;
+  overflow: hidden;
+}
+#header .head__right .loginted .user__thumb img {
+  width: 100%;
+  min-height: 100%;
+  object-fit: cover;
+}
+#header .head__right .loginted .user__name {
+  padding-left: 5px;
+  font-size: 15px;
+  font-weight: 700;
+  width: 95px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  #header .head__right .loginted .user__name {
+    display: none;
+  }
+}
+#header .head__right .cart-notif {
+  font-size: 20px;
+  color: #fff;
+  margin: 0 20px;
+  position: relative;
+}
+#header .head__right .cart-notif .cart-notif-number {
+  width: 23px;
+  height: 23px;
+  background-color: #dc3545;
+  border-radius: 50%;
+  position: absolute;
+  right: -12px;
+  top: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 12px;
+}
+
+.bootstrap-select {
+  width: 100% !important;
+}
+#contents{
+  min-height: calc(100vh - 380px);
+}
+
+#footer {
+  background-color: #79818a;
+  padding: 50px 0 0;
+  margin: 30px 0 0;
+}
+#footer .footer__info {
+  margin-bottom: 30px;
+}
+#footer .footer__info .f-title {
+  font-size: 18px;
+  font-family: "Yu Mincho";
+  color: #fff;
+}
+#footer .footer__info .menu__list {
+  padding-left: 15px;
+}
+#footer .footer__info .menu__list li {
+  padding: 5px 0;
+}
+#footer .footer__info .menu__list li a {
+  display: block;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 100;
+}
+#footer .copyright {
+  display: block;
+  font-style: normal;
+  font-size: 13px;
+  color: #fff;
+  border-top: 1px solid #293940;
+  padding: 20px;
+  margin-bottom: 0;
+  text-align: center;
+  font-weight: 300;
+}

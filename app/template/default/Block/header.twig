@@ -1,0 +1,45 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{#<div class="ec-headerNaviRole">#}
+{#    <div class="ec-headerNaviRole__left">#}
+{#        <div class="ec-headerNaviRole__search">#}
+{#            {{ render(path('block_search_product')) }}#}
+{#        </div>#}
+{#        <div class="ec-headerRole__navSP">#}
+{#            {{ include('Block/nav_sp.twig') }}#}
+{#        </div>#}
+{#    </div>#}
+{#    <div class="ec-headerNaviRole__right">#}
+{#        <div class="ec-headerNaviRole__nav">#}
+{#            {{ include('Block/login.twig') }}#}
+{#        </div>#}
+{#        <div class="ec-headerRole__cart">#}
+{#            {{ include('Block/cart.twig') }}#}
+{#        </div>#}
+{#    </div>#}
+{#</div>#}
+<div id="header">
+    <div class="wrap">
+        <div class="head__left">
+            {{ include('Block/logo.twig') }}
+            <form method="get" action="{{ path('product_list') }}">
+                <div class="head__search">
+                    <input class="search__input" type="text" name="name">
+                    <button type="submit" class="search__btn"><i class="fa fa-search"></i></button>
+                </div>
+            </form>
+        </div>
+        <div class="head__right">
+            {{ include('Block/cart.twig') }}
+            {{ include('Block/login.twig') }}
+        </div>
+    </div>
+</div>

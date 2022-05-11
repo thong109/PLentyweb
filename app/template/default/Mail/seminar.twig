@@ -1,0 +1,52 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% autoescape false %}
+{{ Order.name01 }} {{ Order.name02 }}　様
+
+いつもお世話になっております。
+PLENTYWEB事務局です。
+
+{{ Order.name01 }} {{ Order.name02 }}様の、
+{{ Product.name }}へのお申込みを確認いたしました。
+この度は、ありがとうございます。
+
+お申込み内容とセミナーの詳細について
+ご案内させていただきます。
+
+■　お申込み内容
+　　{{ Product.name }}
+
+チケット：参加チケット
+枚数：{{ OrderItem.quantity}}枚
+お申込み者名：{{ Order.name01 }} {{ Order.name02 }}
+お申込み日時：{{ Order.order_date|date_sec }}
+セミナー開催日時：{{ Seminar.start_time|date("Y/m/d H:i") }}
+お支払い合計：{{ Order.payment_total|price }}
+
+いつも大変お世話になっております。
+{{ BaseInfo.company_name }}の{{ Product.instructor }}と申します。
+
+この度は{{ Seminar.start_time|date("Y/m/d H:i") }}に開催いたします
+{{ Product.name }}
+にお申込みいただき、誠にありがとうございます。
+
+お申込みいただいた内容をお送りいたしますので、
+以下、ご確認いただきますようお願い申し上げます。
+
+今回お申込みいただいたセミナーは以下の通りです。
+＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊＊
+【講 座 名】 {{ Product.name }}
+【開 催 日】 {{ Seminar.start_time|date("Y/m/d H:i") }}
+【時 間】 {{ Seminar.duration }} （{{ Seminar.start_time|date("Y/m/d H:i") }} ～ 接続確認開始）
+【接 続 URL】{{ Seminar.join_url }}
+　　　　　　 ミーティングID: {{ Seminar.zoom_id }}
+　　　　　　 パスコード: {{ Seminar.zoom_password }}
+{% endautoescape %}

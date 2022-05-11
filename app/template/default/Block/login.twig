@@ -1,0 +1,127 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+
+{#<div class="ec-headerNav">#}
+{#    {% if is_granted('ROLE_USER') %}#}
+{#        <div class="ec-headerNav__item">#}
+{#            <a href="{{ url('mypage') }}">#}
+{#                <i class="ec-headerNav__itemIcon fas fa-user fa-fw"></i>#}
+{#                <span class="ec-headerNav__itemLink">{{ 'front.block.login.mypage'|trans }}</span>#}
+{#            </a>#}
+{#        </div>#}
+{#        {% if BaseInfo.option_favorite_product %}#}
+{#            <div class="ec-headerNav__item">#}
+{#                <a href="{{ url('mypage_favorite') }}">#}
+{#                    <i class="ec-headerNav__itemIcon fas fa-heart fa-fw"></i>#}
+{#                    <span class="ec-headerNav__itemLink">{{ 'front.block.login.favorite'|trans }}</span>#}
+{#                </a>#}
+{#            </div>#}
+{#        {% endif %}#}
+{#        <div class="ec-headerNav__item">#}
+{#            <a href="{{ url('logout') }}">#}
+{#                <i class="ec-headerNav__itemIcon fas fa-lock fa-fw"></i>#}
+{#                <span class="ec-headerNav__itemLink">{{ 'front.block.login.logout'|trans }}</span>#}
+{#            </a>#}
+{#        </div>#}
+{#    {% else %}#}
+{#        <div class="ec-headerNav__item">#}
+{#            <a href="{{ url('entry') }}">#}
+{#                <i class="ec-headerNav__itemIcon fas fa-user fa-fw"></i>#}
+{#                <span class="ec-headerNav__itemLink">{{ 'front.block.login.customer_registration'|trans }}</span>#}
+{#            </a>#}
+{#        </div>#}
+{#        {% if BaseInfo.option_favorite_product %}#}
+{#            <div class="ec-headerNav__item">#}
+{#                <a href="{{ url('mypage_favorite') }}">#}
+{#                    <i class="ec-headerNav__itemIcon fas fa-heart fa-fw"></i>#}
+{#                    <span class="ec-headerNav__itemLink">{{ 'front.block.login.favorite'|trans }}</span>#}
+{#                </a>#}
+{#            </div>#}
+{#        {% endif %}#}
+{#        <div class="ec-headerNav__item">#}
+{#            <a href="{{ url('mypage_login') }}">#}
+{#                <i class="ec-headerNav__itemIcon fas fa-lock fa-fw"></i>#}
+{#                <span class="ec-headerNav__itemLink">{{ 'front.block.login.login'|trans }}</span>#}
+{#            </a>#}
+{#        </div>#}
+{#    {% endif %}#}
+{#</div>#}
+
+{% if is_granted('ROLE_USER') %}
+    {#<div class="ec-headerNav__item">#}
+    {#    <a href="{{ url('mypage') }}">#}
+    {#        <i class="ec-headerNav__itemIcon fas fa-user fa-fw"></i>#}
+    {#        <span class="ec-headerNav__itemLink">{{ 'front.block.login.mypage'|trans }}</span>#}
+    {#    </a>#}
+    {#</div>#}
+    {#<div class="ec-headerNav__item">#}
+    {#    <a href="{{ url('logout') }}">#}
+    {#        <i class="ec-headerNav__itemIcon fas fa-lock fa-fw"></i>#}
+    {#        <span class="ec-headerNav__itemLink">{{ 'front.block.login.logout'|trans }}</span>#}
+    {#    </a>#}
+    {#</div>#}
+
+    <div class="loginted">
+        <div class="user__thumb">
+            <a href="{{ url('mypage') }}">
+                <img src="{{ asset("assets/img/data/user.jpg") }}" alt="">
+            </a>
+        </div>
+        <a href="{{ url('mypage') }}">
+            <span class="user__name">{{ 'front.block.login.mypage'|trans }}</span>
+        </a>
+    </div>
+    <a href="{{ url('logout') }}" class="btn btn-danger btn-control customer_registration">
+        <span class="text-registration">  {{ 'front.block.login.logout'|trans }}</span>
+
+        {#<span class="btn-icon"><i class="fa fa-sign-out"></i></span>#}
+
+        <span class="btn-icon" style="margin-top: 3px">
+            <i class="fa fa-sign-out"></i>
+        </span>
+    </a>
+{% else %}
+    <a href="{{ url('mypage_login') }}" class="btn btn-light btn-control">
+        <span class="btn-text">
+             {{ 'front.block.login.login'|trans }}
+             {#新規登録#}
+         </span>
+        <span class="btn-icon" style="margin-top: 3px">
+            <i class="fa fa-lock"></i>
+        </span>
+    </a>
+    <a href="{{ url('entry') }}" class="btn btn-danger btn-control customer_registration">
+        <span class="btn-text">
+            {{ 'front.block.login.customer_registration'|trans }}
+        </span>
+        <span class="btn-icon" style="margin-top: 3px">
+            <i class="fa fa-sign-out"></i>
+        </span>
+
+    </a>
+{% endif %}
+
+
+{#<div class="loginted">#}
+{#    <div class="user__thumb">#}
+{#        <img src="{{ asset("assets/img/data/user.jpg") }}" alt="">#}
+{#    </div>#}
+{#    <span class="user__name">先生になろう</span>#}
+{#</div>#}
+{#<button class="btn btn-light btn-control">#}
+{#    <span class="btn-text">新規登録</span> <span class="btn-icon">#}
+{#        <i class="fa fa-lock"></i>#}
+{#    </span>#}
+{#</button>#}
+{#<button class="btn btn-danger btn-control">#}
+{#    <span class="btn-text">ログイン</span>#}
+{#    <span class="btn-icon"><i class="fa fa-sign-out"></i></span>#}
+{#</button>#}

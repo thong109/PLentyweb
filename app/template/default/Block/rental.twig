@@ -1,0 +1,64 @@
+<div class="rental">
+    <div class="wrap">
+        <h2 class="title-area">レンタル</h2>
+        <div class="title-cont">
+            <h3 class="title">最新のレンタル商品</h3>
+            <a class="view-all" href="{{ url('product_list', {sale_type_id: 20, order_by: 'latest'}) }}">もっと見る ▶</a>
+        </div>
+        {% set rentalLatestList = getTopProducts(20) %}
+        <ul class="product__list">
+            {% for index,Product in rentalLatestList %}
+            <li>
+                <a href="{{ url("product_detail", {id: Product.id}) }}">
+                    <div class="product__thumb">
+                        <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}">
+                    </div>
+                    <p class="product__name">{{ Product.name }}</p>
+                    <p class="product__price">
+                        {% if Product.hasProductClass %}
+                            {% if Product.getPrice02Min == Product.getPrice02Max %}
+                                {{ Product.getPrice02IncTaxMin|price }}
+                            {% else %}
+                                {{ Product.getPrice02IncTaxMin|price }} ～ {{ Product.getPrice02IncTaxMax|price }}
+                            {% endif %}
+                        {% else %}
+                            {{ Product.getPrice02IncTaxMin|price }}
+                        {% endif %}
+                        円
+                    </p>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="title-cont">
+            <h3 class="title">おすすめ商品納入</h3>
+            <a class="view-all" href="{{ url('product_list', {sale_type_id: 20, highlight: 1, order_by: 'latest'}) }}">もっと見る ▶</a>
+        </div>
+        {% set rentalHighlightList = getTopProducts(20, 1) %}
+        <ul class="product__list">
+            {% for index,Product in rentalHighlightList %}
+                <li>
+                    <a href="{{ url("product_detail", {id: Product.id}) }}">
+                        <div class="product__thumb">
+                            <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}">
+                        </div>
+                        <p class="product__name">{{ Product.name }}</p>
+                        <p class="product__price">
+                            {% if Product.hasProductClass %}
+                                {% if Product.getPrice02Min == Product.getPrice02Max %}
+                                    {{ Product.getPrice02IncTaxMin|price }}
+                                {% else %}
+                                    {{ Product.getPrice02IncTaxMin|price }} ～ {{ Product.getPrice02IncTaxMax|price }}
+                                {% endif %}
+                            {% else %}
+                                {{ Product.getPrice02IncTaxMin|price }}
+                            {% endif %}
+                            円
+                        </p>
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>

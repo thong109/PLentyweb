@@ -1,0 +1,299 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends '@admin/default_frame.twig' %}
+
+{% set menus = ['seminar', 'seminar_schedule'] %}
+
+{% block title %}{{ 'admin.seminar.seminar_registration'|trans }}{% endblock %}
+{% block sub_title %}{{ 'admin.seminar.seminar_management'|trans }}{% endblock %}
+
+{% form_theme form '@admin/Form/bootstrap_4_horizontal_layout.html.twig' %}
+
+{% block stylesheet %}
+    <link rel="stylesheet" href="{{ asset('assets/css/tempusdominus-bootstrap-4.min.css', 'admin') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/seminar.css', 'admin') }}">
+    <style type="text/css">
+        .datepicker-days th.dow:first-child,
+        .datepicker-days td:first-child {
+            color: #f00;
+        }
+
+        .datepicker-days th.dow:last-child,
+        .datepicker-days td:last-child {
+            color: #00f;
+        }
+    </style>
+{% endblock stylesheet %}
+{% block javascript %}
+    <script>
+        $(function () {
+
+            $.when(
+                $.getScript("{{ asset('assets/js/vendor/moment.min.js', 'admin') }}"),
+                $.getScript("{{ asset('assets/js/vendor/moment-with-locales.min.js', 'admin') }}"),
+                $.getScript("{{ asset('assets/js/vendor/tempusdominus-bootstrap-4.min.js', 'admin') }}")
+            ).done(function () {
+
+            });
+        });
+
+    </script>
+{% endblock javascript %}
+
+{% block main %}
+    <div class="modal fade" id="confirmFormChangeModal" tabindex="-1" role="dialog"
+         aria-labelledby="confirmFormChangeModal" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">{{ 'admin.common.move_to_confirm_title'|trans }}</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p class="screen-name"></p>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-ec-conversion" data-action="save" href="javascript:void(0)">
+                        {{ 'admin.common.move_to_confirm_save_and_move'|trans }}
+                    </a>
+                    <a class="btn btn-ec-sub" data-action="cancel" href="javascript:void(0)">
+                        {{ 'admin.common.move_to_confirm_move_only'|trans }}
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <form role="form" name="form1" id="form1" method="post" action="" novalidate enctype="multipart/form-data">
+        {{ form_widget(form._token) }}
+        <div class="c-contentsArea__cols">
+            <div class="c-contentsArea__primaryCol">
+                <div class="c-primaryCol">
+                    <div class="card rounded border-0 mb-4 body-schedule">
+                        <div class="card-header  basicConfig-schedule">
+                            <div class="row">
+                                <div class="col-3">
+                                    {{ 'admin.seminar.seminar_schedule'|trans }}
+                                </div>
+                                <div class="col-1"></div>
+                                <div class="col-8">
+                                    <div class="title-box-schedule">
+                                        <span>{{ 'admin.seminar.seminar_ID'|trans }}</span>
+                                        {{ form_widget(form.name) }}
+                                        <span> {{ 'admin.seminar.schedule_ID'|trans }}</span>
+                                        {{ form_widget(form.name_kana) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="collapse show ec-cardCollapse basicConfig-schedule" id="basicConfig">
+                            <div class="card-body">
+                                <div class="row  mb-2">
+                                    <div class="d-inline-block">
+                                        <span>{{ 'admin.seminar.seminar_topic'|trans }}</span>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    {{ form_widget(form.seminar_topic) }}
+                                </div>
+                                <div class="row  mb-2">
+                                    <div class="mb-2 box-date-schedule">
+                                        <span class="text-schedule">{{ 'admin.seminar.seminar_schedule_start'|trans }}</span>
+                                        <div class="form-date-start">
+                                            {{ form_widget(form.start_date) }}
+                                            {{ form_errors(form.start_date) }}
+                                        </div>
+                                        <span class="pl-3"></span>
+                                        <div class="form-hour-start">
+                                            {{ form_widget(form.start_time) }}
+                                            {{ form_errors(form.start_time) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="mb-2 box-date-schedule">
+                                        <span class="text-schedule">{{ 'admin.seminar.seminar_duration_time'|trans }}</span>
+                                        <div class="form-select-hour-start">
+                                            {{ form_widget(form.duration_hour) }}
+                                            {{ form_errors(form.duration_hour) }}
+                                            <span class="pl-3"></span>
+                                            {{ form_widget(form.duration_minutes) }}
+                                            {{ form_errors(form.duration_minutes) }}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-2 display-metting-time">
+                                    <p class="time-zone">タイムゾーン: 大阪、東京</p>
+                                </div>
+
+                                <hr size="5px" align="center"/>
+
+                                <div class="row mb-2">
+                                    <div class="d-inline-block">
+                                        <span>{{ 'admin.seminar.seminar_security'|trans }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-2 form-security">
+                                    <div class="form-check">
+                                        <label class="form-check-label" for="admin_seminar_password_required">パスコード（必須）</label>
+                                    </div>
+                                    <div class="form-password">
+                                        {{ form_widget(form.password) }}
+                                    </div>
+                                    {{ form_widget(form.waiting_room) }}
+                                </div>
+
+                                <hr size="5px" align="center"/>
+
+                                <div class="row mb-2">
+                                    <div class="d-inline-block">
+                                        <span>{{ 'admin.seminar.seminar_video'|trans }}</span>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <span class="pr-2"> {{ 'admin.seminar.seminar_host'|trans }} :  </span>
+                                    <div id="admin_seminar_video mb-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="host_video" class="form-check-input" value="1">
+                                            <label class="form-check-label">{{ 'admin.seminar.seminar_on'|trans }}</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="host_video" class="form-check-input" value="0">
+                                            <label class="form-check-label">{{ 'admin.seminar.seminar_off'|trans }}</label>
+                                        </div>
+                                    </div>
+
+                                    <span class="pl-5 pr-2"> {{ 'admin.seminar.seminar_participants'|trans }} :  </span>
+                                    <div id="admin_seminar_video mb-3">
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="participant_video" class="form-check-input" value="1">
+                                            <label class="form-check-label">{{ 'admin.seminar.seminar_on'|trans }}</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="participant_video" class="form-check-input" value="2">
+                                            <label class="form-check-label">{{ 'admin.seminar.seminar_off'|trans }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr size="5px" align="center"/>
+
+                                <div class="row mb-2">
+                                    <div class="d-inline-block">
+                                        <span>{{ 'admin.seminar.seminar_audio'|trans }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div id="admin_seminar_audio">
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="audio"  class="form-check-input" value="0">
+                                            <label class="form-check-label">{{ 'admin.seminar.seminar_audio_phone'|trans }}</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="audio" class="form-check-input" value="1">
+                                            <label class="form-check-label">{{ 'admin.seminar.seminar_audio_computer'|trans }}</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="audio" class="form-check-input" value="2">
+                                            <label class="form-check-label">{{ 'admin.seminar.seminar_audio_phone_computer'|trans }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr size="5px" align="center"/>
+
+                                <div class="row mb-2">
+                                    <div class="d-inline-block">
+                                        <span>{{ 'admin.seminar.calendar'|trans }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-2">
+                                    <div id="admin_seminar_audio">
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="calendar" class="form-check-input" value="1">
+                                            <label class="form-check-label">{{ 'admin.seminar.calendar_outlook'|trans }}</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="calendar" class="form-check-input" value="2">
+                                            <label class="form-check-label">{{ 'admin.seminar.calendar_google'|trans }}</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input type="radio" name="calendar" class="form-check-input" value="3">
+                                            <label class="form-check-label">{{ 'admin.seminar.calendar_other'|trans }}</label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr size="5px" align="center"/>
+
+                                <div class="row mb-2">
+                                    <div class="d-inline-block">
+                                        <span>{{ 'admin.seminar.seminar_advance_option'|trans }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div id="admin_seminar_advance_option">
+                                        <div class="padding-optiom">
+                                            {{ form_widget(form.option1) }}
+                                        </div>
+                                        <div class="padding-optiom">
+                                            {{ form_widget(form.option2) }}
+                                        </div>
+                                        <div class="padding-optiom">
+                                            {{ form_widget(form.option3) }}
+                                        </div>
+                                        <div class="padding-optiom">
+                                            {{ form_widget(form.option4) }}
+                                        </div>
+                                        <div class="select-option-inline">
+                                            <div class="pr-3">
+                                                {{ form_widget(form.option5) }}
+                                            </div>
+                                            <div class="pr-3">
+                                                <div class="form-check form-check-inline">
+                                                    <input type="radio" name="auto_recording" class="form-check-input" value="1">
+                                                    <label class="form-check-label">{{ 'admin.seminar.seminar_advance_option_6'|trans }}</label>
+                                                </div>
+                                            </div>
+                                            <div class="pr-3">
+                                                <div class="form-check form-check-inline">
+                                                    <input type="radio" name="auto_recording" class="form-check-input" value="2">
+                                                    <label class="form-check-label">{{ 'admin.seminar.seminar_advance_option_7'|trans }}</label>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row button-schedule">
+                                    <button class="btn btn-ec-conversion px-3 bd-radius-10">
+                                        {{ 'admin.seminar.seminar_button_save'|trans }}
+                                    </button>
+                                    <button class="btn button-schedule-cancel px-3">
+                                        {{ 'admin.seminar.seminar_button_cancel'|trans }}
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

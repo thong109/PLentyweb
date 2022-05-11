@@ -1,0 +1,103 @@
+.box-schedule
+{
+    border: 1px solid #ced4da;
+    padding: 10px;
+}
+
+.form-box-schedule{
+    display: flex;
+}
+span.text-schedule {
+    align-items: center;
+    display: flex;
+    padding-right: 10px;
+    white-space: nowrap;
+    min-width: 80px;
+}
+
+.form-date-start {
+    min-width: 300px;
+    max-width: 300px;
+}
+
+.form-hour-start {
+    min-width: 100px;
+    max-width: 100px;
+}
+
+.form-select-hour-start {
+    min-width: 300px;
+    max-width: 300px;
+    display: flex;
+}
+
+.mb-2.box-date-schedule {
+    display: flex;
+}
+
+.body-schedule{
+    padding: 20px 80px;
+}
+
+.basicConfig-schedule {
+    width: 80%;
+    margin: 0 auto;
+}
+
+.form-security .form-check{
+    align-items: center;
+    display: flex;
+    padding-right: 10px;
+}
+
+.form-security .form-check:last-child{
+    margin-left: 20px;
+}
+
+#admin_seminar_advance_option {
+    margin: 0 auto;
+}
+#admin_seminar_advance_option .padding-optiom {
+     padding: 10px 0;
+}
+
+.select-option-inline {
+    display: flex;
+    margin: 0 auto;
+}
+
+.display-metting-time {
+    display: flex;
+    justify-content: space-between;
+}
+
+.title-box-schedule{
+     display: flex;
+     white-space: nowrap
+ }
+
+.title-box-schedule span{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    vertical-align: middle;
+    padding: 0 5px;
+}
+
+.row.button-schedule {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.row.button-schedule button {
+    margin-left: 10px
+}
+
+.button-schedule-cancel{
+    border: 1px solid #ced4da;
+    border-radius: 10px;
+}
+
+.bd-radius-10{
+    border-radius: 10px;
+}

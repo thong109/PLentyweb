@@ -1,0 +1,48 @@
+<div class="row box-add-form border rounded">
+    <div class="item-name-id col-1"></div>
+    <div class="d-flex flex-column content-add-form col-11">
+        <div class="d-flex justify-content-between mb-2">
+            <div class="box-form-item d-flex">
+                <div class="span mr-2">開始</div>
+                <div class="item-select mr-2">
+                    <label>
+                        <input type="text" value="{{ startTime }}" name="start_time[]" class="form-control" readonly>
+                    </label>
+                </div>
+            </div>
+            <div class="box-form-item  d-flex">
+                <div class="span mr-2">経過時間</div>
+                <div class="item-select mr-2">
+                    <label>
+                        <input type="text" value="{{ duration }}" name="duration[]" class="form-control" readonly>
+                    </label>
+                </div>
+            </div>
+{#            <div class="box-button d-flex">#}
+{#                <button type="button" class="btn btn-primary" data-id="{{  }}">#}
+{#                    セミナーURLメール送信#}
+{#                </button>#}
+{#            </div>#}
+        </div>
+        <div class="d-flex result-box-form justify-content-between">
+            <div class="box-form-item box-form-item-2 d-flex">
+                <div class="span text-nowrap mr-2">ﾐｰﾃｨﾝｸﾞID</div>
+                <label>
+                    <input type="text" value="{{ meetingId }}" name="meeting_id[]" class="form-control" readonly>
+                </label>
+            </div>
+            <div class="box-form-item box-form-item-2 d-flex">
+                <div class="span text-nowrap mr-2">パスワード</div>
+                <label>
+                    <input type="text" value="{{ password }}"  name="password[]" class="form-control" readonly>
+                </label>
+            </div>
+            <div class="box-form-item box-form-item-5 d-flex">
+                <div class="span text-nowrap mr-2">招待リンク</div>
+                <label>
+                    <input type="text" value="{{ meetingUrl }}"  name="meeting_url[]" class="form-control" readonly>
+                </label>
+            </div>
+        </div>
+    </div>
+</div>

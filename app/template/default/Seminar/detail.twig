@@ -1,0 +1,419 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'seminar_page' %}
+
+{% block stylesheet %}
+{% endblock %}
+
+
+{% block javascript %}
+<script>
+    eccube.classCategories = {{ class_categories_as_json(Product)|raw }};
+
+        // 規格2に選択肢を割り当てる。
+        function fnSetClassCategories(form, classcat_id2_selected) {
+            var $form = $(form);
+            var product_id = $form.find('input[name=product_id]').val();
+            var $sele1 = $form.find('select[name=classcategory_id1]');
+            var $sele2 = $form.find('select[name=classcategory_id2]');
+            eccube.setClassCategories($form, product_id, $sele1, $sele2, classcat_id2_selected);
+        }
+
+        {% if form.classcategory_id2 is defined %}
+        fnSetClassCategories(
+            $('#form1'), {{ form.classcategory_id2.vars.value|json_encode|raw }}
+        );
+        {% elseif form.classcategory_id1 is defined %}
+        eccube.checkStock($('#form1'), {{ Product.id }}, {{ form.classcategory_id1.vars.value|json_encode|raw }}, null);
+        {% endif %}
+    </script>
+
+    <script>
+        $(function () {
+            $('.add-cart').on('click', function (event) {
+                {% if form.classcategory_id1 is defined %}
+                // 規格1フォームの必須チェック
+                if ($('#classcategory_id1').val() == '__unselected' || $('#classcategory_id1').val() == '') {
+                    $('#classcategory_id1')[0].setCustomValidity('{{ 'front.product.product_class_unselected'|trans }}');
+                    return true;
+                } else {
+                    $('#classcategory_id1')[0].setCustomValidity('');
+                }
+                {% endif %}
+
+                {% if form.classcategory_id2 is defined %}
+                // 規格2フォームの必須チェック
+                if ($('#classcategory_id2').val() == '__unselected' || $('#classcategory_id2').val() == '') {
+                    $('#classcategory_id2')[0].setCustomValidity('{{ 'front.product.product_class_unselected'|trans }}');
+                    return true;
+                } else {
+                    $('#classcategory_id2')[0].setCustomValidity('');
+                }
+                {% endif %}
+
+                // 個数フォームのチェック
+                if ($('#quantity').val() < 1) {
+                    $('#quantity')[0].setCustomValidity('{{ 'front.product.invalid_quantity'|trans }}');
+                    return true;
+                } else {
+                    $('#quantity')[0].setCustomValidity('');
+                }
+
+                event.preventDefault();
+                $form = $('#form1');
+                $.ajax({
+                    url: $form.attr('action'),
+                    type: $form.attr('method'),
+                    data: $form.serialize(),
+                    dataType: 'json',
+                    beforeSend: function (xhr, settings) {
+                        // Buttonを無効にする
+                        $('.add-cart').prop('disabled', true);
+                    }
+                }).done(function (data) {
+                    // レスポンス内のメッセージをalertで表示
+                    $.each(data.messages, function () {
+                        $('#ec-modal-header').html(this);
+                    });
+
+                    $('.modal_cart').show()
+
+                    // カートブロックを更新する
+                    $.ajax({
+                        url: "{{ url('block_cart') }}",
+                        type: 'GET',
+                        dataType: 'html'
+                    }).done(function (html) {
+                        $('.ec-headerRole__cart').html(html);
+                    });
+                }).fail(function (data) {
+                    alert('{{ 'front.product.add_cart_error'|trans }}');
+                }).always(function (data) {
+                    // Buttonを有効にする
+                    $('.add-cart').prop('disabled', false);
+                });
+            });
+        });
+
+        $('.ec-modal-overlay, .ec-modal .ec-inlineBtn--cancel').on('click', function () {
+            $('.modal_cart').hide()
+        });
+
+        $("#frm_contact").validate({
+            ignore: ":hidden",
+            rules: {
+                name: {
+                    required: true
+
+                },
+                email: {
+                    required: true,
+                    email : true
+                },
+                subject: {
+                    required: true
+                },
+                content: {
+                    required: true
+                }
+            }
+        });
+
+        $.extend( $.validator.messages, {
+            required: "このフィールドは必須です。",
+            remote: "このフィールドを修正してください。",
+            email: "有効なEメールアドレスを入力してください。",
+            url: "有効なURLを入力してください。",
+            date: "有効な日付を入力してください。",
+            dateISO: "有効な日付（ISO）を入力してください。",
+            number: "有効な数字を入力してください。",
+            digits: "数字のみを入力してください。",
+            creditcard: "有効なクレジットカード番号を入力してください。",
+            equalTo: "同じ値をもう一度入力してください。",
+            extension: "有効な拡張子を含む値を入力してください。",
+            maxlength: $.validator.format( "{0} 文字以内で入力してください。" ),
+            minlength: $.validator.format( "{0} 文字以上で入力してください。" ),
+            rangelength: $.validator.format( "{0} 文字から {1} 文字までの値を入力してください。" ),
+            range: $.validator.format( "{0} から {1} までの値を入力してください。" ),
+            step: $.validator.format( "{0} の倍数を入力してください。" ),
+            max: $.validator.format( "{0} 以下の値を入力してください。" ),
+            min: $.validator.format( "{0} 以上の値を入力してください。" )
+        } );
+
+        $("#btn-submit-contact").on("click", function (e) {
+            e.preventDefault(); // avoid to execute the actual submit of the form.
+            var form = $("#frm_contact");
+
+            var url = "/seminar/contact";
+            form.valid();
+            if (!form.valid()) return false;
+
+            $overlay = $('<div class="bg-load-overlay">');
+            $('body').append($overlay);
+            $.ajax({
+                type: "POST",
+                url: url,
+                data: form.serialize(), // serializes the form's elements.
+                success: function (data) {
+                    alert(data['message']); // show response from the php script.
+                    $('.bg-load-overlay').hide();
+                },
+                error: function (error) {
+                    $('.bg-load-overlay').hide();
+                }
+            });
+        });
+
+    </script>
+
+<script >
+    $('.scheduleId').change(function (){
+        $('#schedule_id').val($(this).val());
+    })
+    </script>
+{% endblock %}
+
+{% block main %}
+    <div class="ec-cartRole">
+        <div class="ec-cartRole ec-cartRole__confirm mt-5 mb-5 row">
+            <div class="col-md col-lg-8">
+                <div class="ec__info-ct-1">
+                    <div class="image">
+                        <img src="{{ asset(Product.main_list_image|no_image_product, 'save_image') }}"
+                             alt="{{ Product.name }}">
+                    </div>
+                    <div class="title mt-3 mb-5"><strong>{{ Product.name }}</strong></div>
+                    <div>
+                        <strong>セミナーの紹介</strong><br/>
+                        {{ Product.description_detail|raw|nl2br }}
+                        {% if Product.freearea %}
+                            <div class="ec-productRole__description">
+                                {{ include(template_from_string(Product.freearea)) }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {# <div class="ec__bottom"> #}
+                    {# <div class="title mb-2"> #}
+                    {# <strong>レビュー</strong> #}
+                    {# </div> #}
+                    {# <div class="row"> #}
+                    {# <div class="col-6"> #}
+                    {# <div class="ec__rank-start"> #}
+                    {# <div class="ec__rank-start-top d-flex align-items-center"><i class="fa fa-user" aria-hidden="true"></i>太郎さんより</div> #}
+                    {# <div class="ec__box-rank-start-item ec__ora-star d-flex"> #}
+                    {# <div class="ec__rank-start-item"> #}
+                    {# <i class="fa fa-star" aria-hidden="true"></i> #}
+                    {# <i class="fa fa-star" aria-hidden="true"></i> #}
+                    {# <i class="fa fa-star" aria-hidden="true"></i> #}
+                    {# <i class="fa fa-star" aria-hidden="true"></i> #}
+                    {# <i class="fa fa-star-o" aria-hidden="true"></i> #}
+                    {# </div> #}
+                    {# <span>4.1</span> #}
+                    {# </div> #}
+                    {# <p>もっと短い期間で、金額をお安くレンタルさせて頂けたらなお嬉しいです</p> #}
+                    {# </div> #}
+                    {# </div> #}
+                    {# <div class="col-6"> #}
+                    {# </div> #}
+                    {# </div> #}
+                    {# </div> #}
+                </div>
+            </div>
+            <div class="col-md col-lg-4">
+                <div class="ec__confirm-right">
+                    <div class="p-3">
+                        <p>
+                            <strong>{{ Product.name }}</strong>
+                        </p>
+                        <br/>
+
+                        <div class="choose-date-schedule">
+                            <label><strong>日程を選択</strong></label>
+                            <ul>
+                                {% for Schedule in Product.ProductSeminar %}
+                                    <li>
+                                        <label for="schedule_id_{{ Schedule.id }}">
+                                            <input type="radio" id="schedule_id_{{ Schedule.id }}" name="schedule_id[]"
+                                                   value="{{ Schedule.id }}" class="scheduleId"/>
+                                            {{ Schedule.start_time|date("Y/m/d") }}
+                                            (S) {{ Schedule.start_time|date("H:m") }}
+                                        </label>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <p>
+
+                        </p>
+                        <br/>
+                        <p>
+                            講師者の名前 :
+                            <strong>{{ Product.instructor }}</strong>
+                        </p>
+                        <br/>
+                        <p>
+                            {# div class="d-flex align-items-center background-grey padding-10"> #}
+                            {% if Product.hasProductClass -%}
+                            {% if Product.getPrice02IncTaxMin == Product.getPrice02IncTaxMax %}
+                        <div class="ec-price">
+                            <span class="ec-price__price">料金（税込）: {{ Product.getPrice02IncTaxMin|price }}</span>
+                            <span class="ec-price__tax">({{ 'common.tax_include'|trans }})</span>
+                        </div>
+                        {% else %}
+                            <div class="ec-price">
+                                <span
+                                    class="ec-price__price">料金（税込）: {{ Product.getPrice02IncTaxMin|price }}
+                                    ～ {{ Product.getPrice02IncTaxMax|price }}</span>
+                                <span class="ec-price__tax">({{ 'common.tax_include'|trans }})</span>
+                            </div>
+                        {% endif %}
+                        {% else %}
+                            <div class="ec-price">
+                                <span class="ec-price__price">料金（税込）: {{ Product.getPrice02IncTaxMin|price }}</span>
+                                <span class="ec-price__tax">({{ 'common.tax_include'|trans }})</span>
+                            </div>
+                        {% endif %}
+                        {# </div> #}
+                        </p>
+                        <br/>
+                        {# <div class="form-group"> #}
+                        {# <select class="form-control" id="exampleFormControlSelect1"> #}
+                        {# <option>1</option> #}
+                        {# <option>2</option> #}
+                        {# <option>3</option> #}
+                        {# <option>4</option> #}
+                        {# <option>5</option> #}
+                        {# </select> #}
+                        {# </div> #}
+                        {# <div class="ec_bg-red-seminar-detail"> #}
+                        {# <a href="">申し込む</a> #}
+                        {# </div> #}
+                        {# ==============    add to cart       ============== #}
+                        <div class="clearfix">
+                            {% if Product.ProductCategories is not empty %}
+                                <div class="ec-productRole__category">
+                                    <div>{{ 'front.product.related_category'|trans }}</div>
+                                    {% for ProductCategory in Product.ProductCategories %}
+                                        <ul>
+                                            <li>
+                                                {% for Category in ProductCategory.Category.path %}
+                                                    <a href="{{ url('product_list') }}?category_id={{ Category.id }}">{{ Category.name }}</a> {%- if loop.last == false %}
+                                                    <span>＞</span>{% endif -%}
+                                                {% endfor %}
+                                            </li>
+                                        </ul>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <form action="{{ url('product_add_cart', {id:Product.id}) }}" method="post" id="form1"
+                                  name="form1">
+                                {{ form_rest(form) }}
+                                {% if Product.stock_find %}
+                                    <div class="ec-productRole__actions">
+                                        {% if form.classcategory_id1 is defined %}
+                                            <div class="ec-select">
+                                                {{ form_widget(form.classcategory_id1) }}
+                                                {{ form_errors(form.classcategory_id1) }}
+                                            </div>
+                                            {% if form.classcategory_id2 is defined %}
+                                                <div class="ec-select">
+                                                    {{ form_widget(form.classcategory_id2) }}
+                                                    {{ form_errors(form.classcategory_id2) }}
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                    <div class="ec-productRole__actions d-flex justify-content-center">
+                                        <button type="submit" class="ec-blockBtn--action add-cart">申し込む</button>
+                                    </div>
+                                {% else %}
+                                    <div class="ec-productRole__actions d-flex justify-content-center">
+                                        <button type="button" class="ec-blockBtn--action" disabled="disabled">
+                                            {{ 'front.product.out_of_stock'|trans }}
+                                        </button>
+                                    </div>
+                                {% endif %}
+                            </form>
+                            <div class="ec-modal modal_cart">
+                                <div class="ec-modal-overlay">
+                                    <div class="ec-modal-wrap">
+                                        <span class="ec-modal-close">
+                                            <span class="ec-icon">
+                                                <img src="{{ asset('assets/icon/cross-dark.svg') }}" alt=""/>
+                                            </span>
+                                        </span>
+                                        <div id="ec-modal-header"
+                                             class="text-center">{{ 'front.product.add_cart_complete'|trans }}</div>
+                                        <div class="ec-modal-box">
+                                            <div class="ec-role">
+                                                <span
+                                                    class="ec-inlineBtn--cancel">{{ 'front.product.continue'|trans }}</span>
+                                                <a href="{{ url('cart') }}"
+                                                   class="ec-inlineBtn--action">{{ 'common.go_to_cart'|trans }}</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3 mb-3">
+                    <div class="clearfix" style="width: 100%;">
+                        <a class="ec__text-a-blue" style="color: #1091f8" data-toggle="collapse" href="#collapseExample"
+                           role="button" aria-expanded="false" aria-controls="collapseExample">
+                            このセミナーに関する問い合わせ ›
+                        </a>
+                        <div class="collapse" id="collapseExample">
+                            <div class="card card-body">
+                                <form method="GET" name="frm_contact" id="frm_contact" accept-charset="utf-8">
+                                    <input type="hidden" name="token" value="{{ csrf_token('token') }}"/>
+                                    <input type="hidden" name="store_email" value="{{ Product.Store.mail_feedback }}">
+                                    <div class="title ec__fs-20 ec__text-red">お問い合わせフォーム</div>
+                                    <div class="form-group">
+                                        <label for="name">名前</label>
+                                        <input type="text" class="form-control" id="name" name="name" placeholder="名前">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" class="form-control" id="email" name="email"
+                                               placeholder="person@example.com"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="subject">件名</label>
+                                        <input type="text" class="form-control" id="subject" name="subject"
+                                               placeholder="件名"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="content">お問い合わせ内容</label>
+                                        <textarea class="form-control" id="content" name="content"
+                                                  rows="3" placeholder="ご用件を記入ください。"></textarea>
+                                    </div>
+
+                                    <button
+                                        type="button" name="btn-submit"
+                                        id="btn-submit-contact"
+                                        class="btn btn-primary mb-2"
+                                    >
+                                        送信する
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

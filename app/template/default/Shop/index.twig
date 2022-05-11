@@ -1,0 +1,75 @@
+{#
+This file is part of EC-CUBE
+
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
+
+http://www.ec-cube.co.jp/
+
+For the full copyright and license information, please view the LICENSE
+file that was distributed with this source code.
+#}
+{% extends 'default_frame.twig' %}
+
+{% set body_class = 'shop_page' %}
+
+{% block stylesheet %}
+
+{% endblock %}
+
+{% block main %}
+    <div class="ec-shelfRole">
+        <ul class="ec-shelfGrid">
+            {% for Store in pagination %}
+                <li class="ec-shelfGrid__item">
+                    <a href="{{ url('product_detail', {'id': Store.id}) }}">
+                        <p class="ec-shelfGrid__item-image">
+                            <img src="{{ asset(Store.image|no_image_product, 'save_image') }}">
+                        </p>
+                        <p>{{ Store.name }}</p>
+                        {% if Store.description %}
+                            <p>{{ Store.description|raw|nl2br }}</p>
+                        {% endif %}
+
+                    </a>
+
+{#                    {% if Product.stock_find %}#}
+{#                        {% set form = forms[Product.id] %}#}
+{#                        <form name="form{{ Product.id }}" id="productForm{{ Product.id }}" action="{{ url('product_add_cart', {id:Product.id}) }}" method="post">#}
+{#                            <div class="ec-productRole__actions">#}
+{#                                {% if form.classcategory_id1 is defined %}#}
+{#                                    <div class="ec-select">#}
+{#                                        {{ form_widget(form.classcategory_id1) }}#}
+{#                                        {{ form_errors(form.classcategory_id1) }}#}
+{#                                    </div>#}
+{#                                    {% if form.classcategory_id2 is defined %}#}
+{#                                        <div class="ec-select">#}
+{#                                            {{ form_widget(form.classcategory_id2) }}#}
+{#                                            {{ form_errors(form.classcategory_id2) }}#}
+{#                                        </div>#}
+{#                                    {% endif %}#}
+{#                                {% endif %}#}
+{#                                <div class="ec-numberInput"><span>{{ 'common.quantity'|trans }}</span>#}
+{#                                    {{ form_widget(form.quantity, {'attr': {'class': 'quantity'}}) }}#}
+{#                                    {{ form_errors(form.quantity) }}#}
+{#                                </div>#}
+{#                            </div>#}
+{#                            {{ form_rest(form) }}#}
+{#                        </form>#}
+{#                        <div class="ec-productRole__btn">#}
+{#                            <button type="submit" class="ec-blockBtn--action add-cart" data-cartid="{{ Product.id }}" form="productForm{{ Product.id }}">#}
+{#                                {{ 'front.product.add_cart'|trans }}#}
+{#                            </button>#}
+{#                        </div>#}
+{#                    {% else %}#}
+{#                        <div class="ec-productRole__btn">#}
+{#                            <button type="button" class="ec-blockBtn--action" disabled="disabled">#}
+{#                                {{ 'front.product.out_of_stock'|trans }}#}
+{#                            </button>#}
+{#                        </div>#}
+{#                    {% endif %}#}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}
+
